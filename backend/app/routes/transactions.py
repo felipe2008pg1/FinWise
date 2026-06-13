@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import date
 from app.database import supabase
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, get_token
 
 router = APIRouter()
 
@@ -11,13 +11,13 @@ class TransactionRequest(BaseModel):
     category_id: Optional[str] = None
     title: str
     amount: float
-    type: str  # 'income' ou 'expense'
+    type: str
     date: date
     notes: Optional[str] = None
 
 @router.get("/")
-def get_transactions(user_id: str = Depends(get_current_user)):
-    res = supabase.table("transactions")\
+async def get_transactions(token: str = Depends(get_token), user_id: str = Depends(get_current_user)):
+    res = supabase.postgrest.auth(token).from_("transactions")\
         .select("*, categories(name, color, icon)")\
         .eq("user_id", user_id)\
         .order("date", desc=True)\
@@ -25,8 +25,8 @@ def get_transactions(user_id: str = Depends(get_current_user)):
     return res.data
 
 @router.post("/")
-def create_transaction(data: TransactionRequest, user_id: str = Depends(get_current_user)):
-    res = supabase.table("transactions").insert({
+async def create_transaction(data: TransactionRequest, token: str = Depends(get_token), user_id: str = Depends(get_current_user)):
+    res = supabase.postgrest.auth(token).from_("transactions").insert({
         "user_id": user_id,
         "category_id": data.category_id,
         "title": data.title,
@@ -38,8 +38,8 @@ def create_transaction(data: TransactionRequest, user_id: str = Depends(get_curr
     return res.data[0]
 
 @router.put("/{transaction_id}")
-def update_transaction(transaction_id: str, data: TransactionRequest, user_id: str = Depends(get_current_user)):
-    res = supabase.table("transactions").update({
+async def update_transaction(transaction_id: str, data: TransactionRequest, token: str = Depends(get_token), user_id: str = Depends(get_current_user)):
+    res = supabase.postgrest.auth(token).from_("transactions").update({
         "category_id": data.category_id,
         "title": data.title,
         "amount": data.amount,
@@ -50,8 +50,8 @@ def update_transaction(transaction_id: str, data: TransactionRequest, user_id: s
     return res.data[0]
 
 @router.delete("/{transaction_id}")
-def delete_transaction(transaction_id: str, user_id: str = Depends(get_current_user)):
-    supabase.table("transactions")\
+async def delete_transaction(transaction_id: str, token: str = Depends(get_token), user_id: str = Depends(get_current_user)):
+    supabase.postgrest.auth(token).from_("transactions")\
         .delete()\
         .eq("id", transaction_id)\
         .eq("user_id", user_id)\
