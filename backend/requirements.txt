@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-dotenv
+supabase
+httpx
+python-jose[cryptography]
+pydantic[email]
+anthropic
+reportlab
