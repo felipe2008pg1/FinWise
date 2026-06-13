@@ -1,8 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
-from typing import List
 from app.database import supabase
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, get_token
 from app.config import ANTHROPIC_API_KEY
 import anthropic
 
@@ -13,8 +12,8 @@ class MessageRequest(BaseModel):
     content: str
 
 @router.get("/history")
-async def get_history(user_id: str = Depends(get_current_user)):
-    res = supabase.table("ai_messages")\
+async def get_history(token: str = Depends(get_token), user_id: str = Depends(get_current_user)):
+    res = supabase.postgrest.auth(token).from_("ai_messages")\
         .select("*")\
         .eq("user_id", user_id)\
         .order("created_at")\
@@ -22,17 +21,17 @@ async def get_history(user_id: str = Depends(get_current_user)):
     return res.data
 
 @router.post("/chat")
-async def chat(data: MessageRequest, user_id: str = Depends(get_current_user)):
+async def chat(data: MessageRequest, token: str = Depends(get_token), user_id: str = Depends(get_current_user)):
     # Busca histórico
-    history_res = supabase.table("ai_messages")\
+    history_res = supabase.postgrest.auth(token).from_("ai_messages")\
         .select("*")\
         .eq("user_id", user_id)\
         .order("created_at")\
         .limit(20)\
         .execute()
 
-    # Busca resumo financeiro do usuário
-    transactions_res = supabase.table("transactions")\
+    # Busca resumo financeiro
+    transactions_res = supabase.postgrest.auth(token).from_("transactions")\
         .select("type, amount, title")\
         .eq("user_id", user_id)\
         .order("date", desc=True)\
@@ -65,7 +64,7 @@ Ajude com dicas, análises e planejamento financeiro baseado nesses dados.""",
     assistant_reply = response.content[0].text
 
     # Salva no histórico
-    supabase.table("ai_messages").insert([
+    supabase.postgrest.auth(token).from_("ai_messages").insert([
         {"user_id": user_id, "role": "user", "content": data.content},
         {"user_id": user_id, "role": "assistant", "content": assistant_reply}
     ]).execute()
@@ -73,8 +72,8 @@ Ajude com dicas, análises e planejamento financeiro baseado nesses dados.""",
     return {"reply": assistant_reply}
 
 @router.delete("/history")
-async def clear_history(user_id: str = Depends(get_current_user)):
-    supabase.table("ai_messages")\
+async def clear_history(token: str = Depends(get_token), user_id: str = Depends(get_current_user)):
+    supabase.postgrest.auth(token).from_("ai_messages")\
         .delete()\
         .eq("user_id", user_id)\
         .execute()
