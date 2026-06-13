@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer
 from app.routes import auth, transactions, categories, goals, debts, ai_assistant
+
+security = HTTPBearer()
 
 app = FastAPI(
     title="FinWise API",
