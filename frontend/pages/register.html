@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro — FinWise</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/global.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .auth-box {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .auth-logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .auth-logo h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary-light);
+    }
+
+    .auth-logo p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .auth-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+    }
+
+    .auth-card h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-box">
+    <div class="auth-logo">
+      <h1>💰 FinWise</h1>
+      <p>Sua vida financeira sob controle</p>
+    </div>
+
+    <div class="auth-card">
+      <h2>Criar conta grátis</h2>
+
+      <div id="registerError" class="alert alert-error hidden"></div>
+      <div id="registerSuccess" class="alert alert-success hidden"></div>
+
+      <form id="registerForm">
+        <div class="form-group">
+          <label for="full_name">Nome completo</label>
+          <input type="text" id="full_name" placeholder="Seu nome" required>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="seu@email.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <input type="password" id="password" placeholder="Mínimo 6 caracteres" required minlength="6">
+        </div>
+
+        <button type="submit" id="registerBtn" class="btn btn-primary btn-full btn-lg">
+          Criar conta
+        </button>
+      </form>
+    </div>
+
+    <div class="auth-footer">
+      Já tem conta? <a href="login.html">Entrar</a>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+</body>
+</html>

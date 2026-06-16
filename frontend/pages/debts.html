@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dívidas — FinWise</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <style>
+    .debts-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .debts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .debt-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .debt-card.paid {
+      opacity: 0.5;
+      border-color: var(--success);
+    }
+
+    .debt-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .debt-card-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .debt-remaining {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--danger);
+      margin-bottom: 4px;
+    }
+
+    .debt-total {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .debt-info {
+      display: flex;
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    .debt-info-item {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .debt-info-item span {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-top: 2px;
+    }
+
+    .debt-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .simulate-box {
+      background: var(--bg-input);
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 12px;
+      font-size: 13px;
+    }
+
+    .simulate-box p { margin-bottom: 4px; color: var(--text-muted); }
+    .simulate-box strong { color: var(--text); }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .modal-header h2 { font-size: 18px; font-weight: 600; }
+    .close-btn { background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .icon-btn:hover { opacity: 1; }
+
+    .empty-state { text-align: center; padding: 48px; color: var(--text-muted); }
+    .empty-state p { font-size: 32px; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo">💰 FinWise</div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+      <a href="transactions.html" class="nav-item">💸 Transações</a>
+      <a href="goals.html" class="nav-item">🎯 Metas</a>
+      <a href="debts.html" class="nav-item active">💳 Dívidas</a>
+      <a href="ai-chat.html" class="nav-item">🤖 FinBot IA</a>
+    </nav>
+    <div class="sidebar-footer">
+      <span id="userName" class="text-muted"></span>
+      <button onclick="Auth.logout()" class="btn btn-ghost btn-sm">Sair</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="debts-header">
+      <h1>Dívidas</h1>
+      <button class="btn btn-primary" onclick="openModal()">+ Nova dívida</button>
+    </div>
+
+    <div id="debtsList">
+      <p class="text-muted text-center">Carregando...</p>
+    </div>
+  </main>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Nova dívida</h2>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+
+      <div id="formError" class="alert alert-error hidden"></div>
+
+      <div class="form-group">
+        <label>Título</label>
+        <input type="text" id="debtTitle" placeholder="Ex: Cartão de crédito, Empréstimo...">
+      </div>
+      <div class="form-group">
+        <label>Valor total (R$)</label>
+        <input type="number" id="debtTotal" placeholder="0,00" step="0.01" min="0">
+      </div>
+      <div class="form-group">
+        <label>Valor restante (R$)</label>
+        <input type="number" id="debtRemaining" placeholder="0,00" step="0.01" min="0">
+      </div>
+      <div class="form-group">
+        <label>Taxa de juros mensal (%)</label>
+        <input type="number" id="debtRate" placeholder="Ex: 2.5" step="0.01" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>Pagamento mensal (R$)</label>
+        <input type="number" id="debtPayment" placeholder="0,00" step="0.01" min="0">
+      </div>
+      <div class="form-group">
+        <label>Dia de vencimento</label>
+        <input type="number" id="debtDueDay" placeholder="Ex: 10" min="1" max="31">
+      </div>
+
+      <button class="btn btn-primary btn-full" id="saveBtn" onclick="saveDebt()">
+        Salvar dívida
+      </button>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/debts.js"></script>
+</body>
+</html>

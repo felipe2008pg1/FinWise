@@ -11,7 +11,9 @@ def decode_jwt(token: str):
         payload_b64 += "=" * (4 - len(payload_b64) % 4)
         payload = json.loads(base64.b64decode(payload_b64).decode("utf-8"))
         return payload
+    
     except Exception:
+        
         return None
 
 async def get_token(credentials: HTTPAuthorizationCredentials = Depends(security)):

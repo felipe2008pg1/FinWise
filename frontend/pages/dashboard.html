@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — FinWise</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">💰 FinWise</div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item active">📊 Dashboard</a>
+      <a href="transactions.html" class="nav-item">💸 Transações</a>
+      <a href="goals.html" class="nav-item">🎯 Metas</a>
+      <a href="debts.html" class="nav-item">💳 Dívidas</a>
+      <a href="ai-chat.html" class="nav-item">🤖 FinBot IA</a>
+    </nav>
+    <div class="sidebar-footer">
+      <span id="userName" class="text-muted"></span>
+      <button onclick="Auth.logout()" class="btn btn-ghost btn-sm">Sair</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-header">
+      <h1>Dashboard</h1>
+      <span class="text-muted" id="currentDate"></span>
+    </div>
+
+    <!-- CARDS RESUMO -->
+    <div class="summary-grid">
+      <div class="card summary-card income">
+        <div class="summary-icon">📈</div>
+        <div>
+          <p class="summary-label">Receitas</p>
+          <p class="summary-value" id="totalIncome">R$ 0,00</p>
+        </div>
+      </div>
+      <div class="card summary-card expense">
+        <div class="summary-icon">📉</div>
+        <div>
+          <p class="summary-label">Despesas</p>
+          <p class="summary-value" id="totalExpense">R$ 0,00</p>
+        </div>
+      </div>
+      <div class="card summary-card balance">
+        <div class="summary-icon">💰</div>
+        <div>
+          <p class="summary-label">Saldo</p>
+          <p class="summary-value" id="totalBalance">R$ 0,00</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRÁFICO + TRANSAÇÕES RECENTES -->
+    <div class="content-grid">
+      <div class="card">
+        <h2 class="card-title">Gastos por categoria</h2>
+        <canvas id="categoryChart"></canvas>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">Últimas transações</h2>
+        <div id="recentTransactions">
+          <p class="text-muted text-center">Carregando...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- METAS -->
+    <div class="card mt-2">
+      <h2 class="card-title">Metas financeiras</h2>
+      <div id="goalsList">
+        <p class="text-muted text-center">Carregando...</p>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinBot IA — FinWise</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <style>
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 120px);
+    }
+
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .chat-box {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .message {
+      display: flex;
+      gap: 12px;
+      max-width: 80%;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      background: var(--bg-input);
+    }
+
+    .message.user .message-avatar {
+      background: var(--primary);
+    }
+
+    .message-content {
+      background: var(--bg-input);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .message.user .message-content {
+      background: var(--primary);
+      color: white;
+    }
+
+    .message-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .chat-input-area {
+      display: flex;
+      gap: 12px;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      resize: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .chat-input:focus {
+      border-color: var(--primary);
+    }
+
+    .send-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: var(--primary);
+      border: none;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .send-btn:hover { background: var(--primary-dark); }
+    .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--bg-input);
+      border-radius: 12px;
+      width: fit-content;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      animation: typing 1.2s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    .welcome-message {
+      text-align: center;
+      padding: 32px;
+      color: var(--text-muted);
+    }
+
+    .welcome-message h3 {
+      font-size: 20px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 16px;
+    }
+
+    .suggestion-btn {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 8px 16px;
+      color: var(--text-muted);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .suggestion-btn:hover {
+      border-color: var(--primary);
+      color: var(--text);
+    }
+
+    .no-credits {
+      text-align: center;
+      padding: 16px;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 8px;
+      color: #fcd34d;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo">💰 FinWise</div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+      <a href="transactions.html" class="nav-item">💸 Transações</a>
+      <a href="goals.html" class="nav-item">🎯 Metas</a>
+      <a href="debts.html" class="nav-item">💳 Dívidas</a>
+      <a href="ai-chat.html" class="nav-item active">🤖 FinBot IA</a>
+    </nav>
+    <div class="sidebar-footer">
+      <span id="userName" class="text-muted"></span>
+      <button onclick="Auth.logout()" class="btn btn-ghost btn-sm">Sair</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="chat-container">
+      <div class="chat-header">
+        <h1>🤖 FinBot IA</h1>
+        <button class="btn btn-ghost btn-sm" onclick="clearHistory()">🗑 Limpar histórico</button>
+      </div>
+
+      <div class="no-credits" id="noCredits" style="display:none">
+        ⚠️ IA temporariamente indisponível. Adicione créditos em
+        <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>
+      </div>
+
+      <div class="chat-box" id="chatBox">
+        <div class="welcome-message">
+          <h3>👋 Olá! Sou o FinBot</h3>
+          <p>Seu assistente financeiro pessoal. Posso analisar seus gastos, sugerir economias e te ajudar a planejar seu futuro financeiro.</p>
+          <div class="suggestions">
+            <button class="suggestion-btn" onclick="sendSuggestion(this)">Como estão minhas finanças?</button>
+            <button class="suggestion-btn" onclick="sendSuggestion(this)">Onde posso economizar?</button>
+            <button class="suggestion-btn" onclick="sendSuggestion(this)">Me ajude a criar um orçamento</button>
+            <button class="suggestion-btn" onclick="sendSuggestion(this)">Como quitar minhas dívidas?</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-area">
+        <textarea
+          class="chat-input"
+          id="chatInput"
+          placeholder="Digite sua mensagem..."
+          rows="1"
+          onkeydown="handleKey(event)"
+        ></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/ai-chat.js"></script>
+</body>
+</html>
