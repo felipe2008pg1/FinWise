@@ -1,1 +1,1 @@
-> **🛠️ EM DESENVOLVIMENTO 🛠️**
+> **🛠️🇧🇷 EM DESENVOLVIMENTO / IN DEVELOPMENT 🛠️🇺🇸**
