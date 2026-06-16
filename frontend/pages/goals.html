@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metas — FinWise</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <style>
+    .goals-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .goals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .goal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .goal-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .goal-card-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .goal-card-deadline {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .goal-card-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .goal-card-values {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .goal-card-current {
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--primary-light);
+    }
+
+    .goal-card-target {
+      color: var(--text-muted);
+    }
+
+    .goal-card-pct {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .goal-completed {
+      opacity: 0.6;
+      border-color: var(--success);
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .modal-header h2 { font-size: 18px; font-weight: 600; }
+    .close-btn { background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
+
+    .empty-state { text-align: center; padding: 48px; color: var(--text-muted); }
+    .empty-state p { font-size: 32px; margin-bottom: 8px; }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .icon-btn:hover { opacity: 1; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo">💰 FinWise</div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
+      <a href="transactions.html" class="nav-item">💸 Transações</a>
+      <a href="goals.html" class="nav-item active">🎯 Metas</a>
+      <a href="debts.html" class="nav-item">💳 Dívidas</a>
+      <a href="ai-chat.html" class="nav-item">🤖 FinBot IA</a>
+    </nav>
+    <div class="sidebar-footer">
+      <span id="userName" class="text-muted"></span>
+      <button onclick="Auth.logout()" class="btn btn-ghost btn-sm">Sair</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="goals-header">
+      <h1>Metas financeiras</h1>
+      <button class="btn btn-primary" onclick="openModal()">+ Nova meta</button>
+    </div>
+
+    <div id="goalsList">
+      <p class="text-muted text-center">Carregando...</p>
+    </div>
+  </main>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Nova meta</h2>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+
+      <div id="formError" class="alert alert-error hidden"></div>
+
+      <div class="form-group">
+        <label>Título da meta</label>
+        <input type="text" id="goalTitle" placeholder="Ex: Viagem, Reserva de emergência...">
+      </div>
+      <div class="form-group">
+        <label>Valor alvo (R$)</label>
+        <input type="number" id="goalTarget" placeholder="0,00" step="0.01" min="0">
+      </div>
+      <div class="form-group">
+        <label>Valor atual (R$)</label>
+        <input type="number" id="goalCurrent" placeholder="0,00" step="0.01" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>Prazo (opcional)</label>
+        <input type="date" id="goalDeadline">
+      </div>
+
+      <button class="btn btn-primary btn-full" id="saveBtn" onclick="saveGoal()">
+        Salvar meta
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL ADICIONAR VALOR -->
+  <div class="modal-overlay" id="addValueModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Adicionar valor</h2>
+        <button class="close-btn" onclick="closeAddValueModal()">✕</button>
+      </div>
+      <div class="form-group">
+        <label>Quanto deseja adicionar? (R$)</label>
+        <input type="number" id="addValueInput" placeholder="0,00" step="0.01" min="0">
+      </div>
+      <input type="hidden" id="addValueGoalId">
+      <input type="hidden" id="addValueCurrent">
+      <input type="hidden" id="addValueTarget">
+      <button class="btn btn-primary btn-full" onclick="confirmAddValue()">Adicionar</button>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/goals.js"></script>
+</body>
+</html>

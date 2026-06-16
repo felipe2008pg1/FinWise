@@ -21,7 +21,16 @@ async def register(data: RegisterRequest):
             "password": data.password,
             "options": {"data": {"full_name": data.full_name}}
         })
-        return {"message": "Cadastro realizado!", "user": res.user}
+
+        if not res.user:
+            raise HTTPException(status_code=400, detail="Erro ao criar usuário")
+
+        # Confirma email automaticamente via SQL
+        supabase.postgrest.schema("auth").from_("users").update({
+            "email_confirmed_at": "now()"
+        }).eq("id", res.user.id).execute()
+
+        return {"message": "Cadastro realizado! Já pode fazer login.", "user": res.user}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
