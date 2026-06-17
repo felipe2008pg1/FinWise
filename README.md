@@ -20,7 +20,7 @@
 
 ---
 
-## 🛠️ Tecnologias
+## 🛠️ Technologies
 
 ### Backend
 - **FastAPI** — Modern and asynchronous Python framework.
