@@ -11,33 +11,33 @@
 
 ## 🚀 Funcionalidades
 
-- **📊 Dashboard** — Resumo visual de receitas, despesas e saldo com gráficos
-- **💸 Transações** — Controle completo de receitas e despesas por categoria
-- **🎯 Metas financeiras** — Defina objetivos e acompanhe seu progresso
-- **💳 Gestão de dívidas** — Cadastre dívidas e simule tempo de quitação
-- **🤖 FinBot IA** — Assistente financeiro powered by Claude (Anthropic)
-- **🔒 Autenticação segura** — JWT + Row Level Security no banco de dados
-- **📧 Redefinição de senha** — Fluxo completo via email
+- **📊 Dashboard** — Resumo visual de receitas, despesas e saldo com gráficos.
+- **💸 Transações** — Controle completo de receitas e despesas por categoria.
+- **🎯 Metas financeiras** — Defina objetivos e acompanhe seu progresso.
+- **💳 Gestão de dívidas** — Cadastre dívidas e simule tempo de quitação.
+- **🤖 FinBot IA** — Assistente financeiro powered by Claude (Anthropic).
+- **🔒 Autenticação segura** — JWT + Row Level Security no banco de dados.
+- **📧 Redefinição de senha** — Fluxo completo via email.
 
 ---
 
 ## 🛠️ Tecnologias
 
 ### Backend
-- **FastAPI** — Framework Python moderno e assíncrono
-- **Supabase** — PostgreSQL gerenciado com Auth e RLS
-- **Python-Jose** — Autenticação JWT
-- **Anthropic SDK** — Integração com Claude AI
-- **Pydantic** — Validação de dados
+- **FastAPI** — Framework Python moderno e assíncrono.
+- **Supabase** — PostgreSQL gerenciado com Auth e RLS.
+- **Python-Jose** — Autenticação JWT.
+- **Anthropic SDK** — Integração com Claude AI.
+- **Pydantic** — Validação de dados.
 
 ### Frontend
-- **HTML5 + CSS3 + JavaScript** — Puro, sem frameworks
-- **Chart.js** — Gráficos interativos
-- **Google Fonts (Inter)** — Tipografia
+- **HTML5 + CSS3 + JavaScript** — Puro, sem frameworks.
+- **Chart.js** — Gráficos interativos.
+- **Google Fonts (Inter)** — Tipografia.
 
 ### Infraestrutura
-- **Supabase** — Banco de dados + Auth
-- **Row Level Security (RLS)** — Isolamento de dados por usuário
+- **Supabase** — Banco de dados + Auth.
+- **Row Level Security (RLS)** — Isolamento de dados por usuário.
 
 ---
 
@@ -91,8 +91,8 @@ FinWise/
 
 ### Pré-requisitos
 - Python 3.10+
-- Conta no [Supabase](https://supabase.com)
-- Chave de API da [Anthropic](https://console.anthropic.com) (opcional para IA)
+- Conta no [Supabase](https://supabase.com).
+- Chave de API da [Anthropic](https://console.anthropic.com) (opcional para IA).
 
 ### 1. Clone o repositório
 ```bash
@@ -206,21 +206,21 @@ Acesse: `http://localhost:3000`
 
 ## 🔐 Segurança
 
-- Senhas armazenadas com hash bcrypt pelo Supabase Auth
-- Tokens JWT com expiração de 1 hora
-- Row Level Security — cada usuário acessa apenas seus próprios dados
-- Variáveis sensíveis em `.env` (nunca commitadas)
+- Senhas armazenadas com hash bcrypt pelo Supabase Auth.
+- Tokens JWT com expiração de 1 hora.
+- Row Level Security — cada usuário acessa apenas seus próprios dados.
+- Variáveis sensíveis em `.env` (nunca commitadas).
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] Deploy no Render (backend) + Vercel (frontend)
-- [ ] Exportação de relatórios em PDF
-- [ ] Calculadoras de FGTS, férias e 13º salário
-- [ ] Alertas de gastos por categoria
-- [ ] App mobile (PWA)
-- [ ] Configuração de SMTP para emails reais
+- [ ] Deploy no Render (backend) + Vercel (frontend).
+- [ ] Exportação de relatórios em PDF.
+- [ ] Calculadoras de FGTS, férias e 13º salário.
+- [ ] Alertas de gastos por categoria.
+- [ ] App mobile (PWA).
+- [ ] Configuração de SMTP para emails reais.
 
 ---
 
