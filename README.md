@@ -191,7 +191,7 @@ CREATE POLICY "users_own_ai_messages" ON ai_messages FOR ALL USING (auth.uid() =
 ```bash
 python -m uvicorn app.main:app --reload
 ```
-API available in: `http://localhost:8000`
+API available in: `http://localhost:8000` | 
 Documentation Swagger: `http://localhost:8000/docs`
 
 ### 5. Run the frontend
