@@ -47,3 +47,27 @@ async def login(data: LoginRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=401, detail=str(e))
+    
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+
+class UpdatePasswordRequest(BaseModel):
+    new_password: str
+    access_token: str
+
+@router.post("/forgot-password")
+async def forgot_password(data: ResetPasswordRequest):
+    try:
+        supabase.auth.reset_password_email(data.email)
+        return {"message": "Email de redefinição enviado!"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/update-password")
+async def update_password(data: UpdatePasswordRequest):
+    try:
+        supabase.auth.set_session(data.access_token, "")
+        supabase.auth.update_user({"password": data.new_password})
+        return {"message": "Senha atualizada com sucesso!"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

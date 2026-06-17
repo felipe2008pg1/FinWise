@@ -1,3 +1,5 @@
+console.log('goals.js carregado');
+
 if (!Auth.isLoggedIn()) window.location.href = '/pages/login.html';
 
 const user = getUser();

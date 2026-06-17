@@ -57,6 +57,13 @@
       font-size: 14px;
       color: var(--text-muted);
     }
+
+    .forgot-link {
+      text-align: right;
+      margin-top: 8px;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
@@ -80,6 +87,9 @@
         <div class="form-group">
           <label for="password">Senha</label>
           <input type="password" id="password" placeholder="••••••••" required>
+          <div class="forgot-link">
+            <a href="forgot-password.html">Esqueci minha senha</a>
+          </div>
         </div>
 
         <button type="submit" id="loginBtn" class="btn btn-primary btn-full btn-lg">
