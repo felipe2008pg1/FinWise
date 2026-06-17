@@ -34,7 +34,7 @@
 - **Chart.js** — Interactive graphics.
 - **Google Fonts (Inter)** — Typography.
 
-### Infraestrutura
+### Infraestrure
 - **Supabase** — Database + Auth.
 - **Row Level Security (RLS)** — User-based data isolation.
 
