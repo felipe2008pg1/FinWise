@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinWise — Sua vida financeira sob controle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/global.css">
+  <style>
+    /* ===== HERO ===== */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 80px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary-light);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 100px 24px 80px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(99,102,241,0.15);
+      border: 1px solid rgba(99,102,241,0.3);
+      color: var(--primary-light);
+      padding: 6px 16px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: 56px;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, #f1f5f9, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--text-muted);
+      margin-bottom: 40px;
+      line-height: 1.7;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    /* ===== STATS ===== */
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 64px;
+      padding: 48px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--primary-light);
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ===== FEATURES ===== */
+    .features {
+      padding: 80px 80px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 16px;
+      margin-bottom: 56px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-4px);
+    }
+
+    .feature-icon {
+      font-size: 36px;
+      margin-bottom: 16px;
+    }
+
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ===== HOW IT WORKS ===== */
+    .how {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 80px;
+    }
+
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .step {
+      text-align: center;
+      flex: 1;
+    }
+
+    .step-number {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    .step h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .step p {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* ===== CTA ===== */
+    .cta {
+      text-align: center;
+      padding: 100px 24px;
+    }
+
+    .cta h2 {
+      font-size: 40px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .cta p {
+      color: var(--text-muted);
+      font-size: 16px;
+      margin-bottom: 40px;
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 80px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-logo">💰 FinWise</div>
+    <div class="nav-links">
+      <a href="pages/login.html" class="btn btn-ghost">Entrar</a>
+      <a href="pages/register.html" class="btn btn-primary">Começar grátis</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-badge">🇧🇷 Feito para o brasileiro</div>
+    <h1>Sua vida financeira sob controle</h1>
+    <p>Controle receitas, despesas, metas e dívidas em um só lugar. Com inteligência artificial para te ajudar a tomar as melhores decisões.</p>
+    <div class="hero-btns">
+      <a href="pages/register.html" class="btn btn-primary btn-lg">Criar conta grátis</a>
+      <a href="pages/login.html" class="btn btn-ghost btn-lg">Já tenho conta</a>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat-item">
+      <p class="stat-value">70M+</p>
+      <p class="stat-label">Brasileiros superendividados</p>
+    </div>
+    <div class="stat-item">
+      <p class="stat-value">R$0</p>
+      <p class="stat-label">Custo para começar</p>
+    </div>
+    <div class="stat-item">
+      <p class="stat-value">100%</p>
+      <p class="stat-label">Seus dados protegidos</p>
+    </div>
+    <div class="stat-item">
+      <p class="stat-value">IA</p>
+      <p class="stat-label">Assistente financeiro</p>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <h2 class="section-title">Tudo que você precisa</h2>
+    <p class="section-subtitle">Uma plataforma completa para organizar sua vida financeira</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">💸</div>
+        <h3>Controle de transações</h3>
+        <p>Registre receitas e despesas por categoria, visualize seu histórico e entenda para onde vai seu dinheiro.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h3>Metas financeiras</h3>
+        <p>Defina objetivos como reserva de emergência, viagem ou casa própria e acompanhe seu progresso.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💳</div>
+        <h3>Gestão de dívidas</h3>
+        <p>Cadastre suas dívidas e simule quanto tempo leva para quitá-las com diferentes valores de pagamento.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>FinBot com IA</h3>
+        <p>Assistente inteligente que analisa seus dados e oferece sugestões personalizadas para melhorar suas finanças.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Dashboard visual</h3>
+        <p>Gráficos e resumos que mostram sua situação financeira de forma clara e objetiva.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Seguro e privado</h3>
+        <p>Autenticação segura com JWT e dados isolados por usuário com Row Level Security no banco de dados.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how">
+    <h2 class="section-title">Como funciona</h2>
+    <p class="section-subtitle">Comece em menos de 2 minutos</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <h3>Crie sua conta</h3>
+        <p>Cadastro rápido e gratuito. Sem cartão de crédito.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <h3>Registre seus dados</h3>
+        <p>Adicione receitas, despesas, metas e dívidas.</p>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <h3>Tome decisões melhores</h3>
+        <p>Use o FinBot e os gráficos para planejar seu futuro.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <h2>Comece hoje mesmo</h2>
+    <p>Junte-se a quem já está no controle das finanças</p>
+    <a href="pages/register.html" class="btn btn-primary btn-lg">Criar conta grátis</a>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <span>💰 FinWise — Sua vida financeira sob controle</span>
+    <span>Feito com ❤️ para o Brasil</span>
+  </footer>
+
+</body>
+</html>
