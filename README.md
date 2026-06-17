@@ -1,56 +1,55 @@
-# 💰 FinWise — Plataforma de Educação Financeira
+# 💰 FinWise — Plataform for Finance Education
 
 ![FinWise](https://img.shields.io/badge/FinWise-v1.0-6366f1?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-FastAPI-009688?style=for-the-badge&logo=fastapi)
 ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase)
 ![JavaScript](https://img.shields.io/badge/Frontend-HTML%2FCSS%2FJS-F7DF1E?style=for-the-badge&logo=javascript)
 
-> Plataforma completa de gestão financeira pessoal com inteligência artificial, desenvolvida para ajudar brasileiros a organizarem suas finanças.
-
+> A comprehensive personal financial management platform powered by artificial intelligence, developed to help Brazilians organize their finances.
 ---
 
-## 🚀 Funcionalidades
+## 🚀 Features
 
-- **📊 Dashboard** — Resumo visual de receitas, despesas e saldo com gráficos.
-- **💸 Transações** — Controle completo de receitas e despesas por categoria.
-- **🎯 Metas financeiras** — Defina objetivos e acompanhe seu progresso.
-- **💳 Gestão de dívidas** — Cadastre dívidas e simule tempo de quitação.
-- **🤖 FinBot IA** — Assistente financeiro powered by Claude (Anthropic).
-- **🔒 Autenticação segura** — JWT + Row Level Security no banco de dados.
-- **📧 Redefinição de senha** — Fluxo completo via email.
+- **📊 Dashboard** — Visual summary of income, expenses, and balance with charts.
+- **💸 Transactions** — Complete control over income and expenses by category.
+- **🎯 Financial Goals** — Set goals and track your progress.
+- **💳 Debt Management** — Register your debts and simulate repayment times.
+- **🤖 FinBot IA** — Finance Assistent powered by Claude (Anthropic).
+- **🔒 Secure Authentication** — JWT + Row Level Security in database.
+- **📧 Password Reset** — Complete flow via email.
 
 ---
 
 ## 🛠️ Tecnologias
 
 ### Backend
-- **FastAPI** — Framework Python moderno e assíncrono.
-- **Supabase** — PostgreSQL gerenciado com Auth e RLS.
-- **Python-Jose** — Autenticação JWT.
-- **Anthropic SDK** — Integração com Claude AI.
-- **Pydantic** — Validação de dados.
+- **FastAPI** — Modern and asynchronous Python framework.
+- **Supabase** — PostgreSQL maneged with Auth e RLS.
+- **Python-Jose** — Autentication JWT.
+- **Anthropic SDK** — Integration with Claude AI.
+- **Pydantic** — Data validation.
 
 ### Frontend
-- **HTML5 + CSS3 + JavaScript** — Puro, sem frameworks.
-- **Chart.js** — Gráficos interativos.
-- **Google Fonts (Inter)** — Tipografia.
+- **HTML5 + CSS3 + JavaScript** — Pure.not frameworks.
+- **Chart.js** — Interactive graphics.
+- **Google Fonts (Inter)** — Typography.
 
 ### Infraestrutura
-- **Supabase** — Banco de dados + Auth.
-- **Row Level Security (RLS)** — Isolamento de dados por usuário.
+- **Supabase** — Database + Auth.
+- **Row Level Security (RLS)** — User-based data isolation.
 
 ---
 
-## 📁 Estrutura do projeto
+## 📁 Project Estruture
 
 ```
 FinWise/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py           # Entrada da aplicação
-│   │   ├── config.py         # Variáveis de ambiente
-│   │   ├── database.py       # Conexão Supabase
-│   │   ├── dependencies.py   # Middleware de autenticação
+│   │   ├── main.py           # Application entry
+│   │   ├── config.py         # Environment variables
+│   │   ├── database.py       # Conection Supabase
+│   │   ├── dependencies.py   # Middleware for autentication
 │   │   └── routes/
 │   │       ├── auth.py
 │   │       ├── transactions.py
@@ -87,20 +86,20 @@ FinWise/
 
 ---
 
-## ⚙️ Como rodar localmente
+## ⚙️ How to run locally
 
-### Pré-requisitos
+### Prerequisites
 - Python 3.10+
-- Conta no [Supabase](https://supabase.com).
-- Chave de API da [Anthropic](https://console.anthropic.com) (opcional para IA).
+- Account in [Supabase](https://supabase.com).
+- Key API for [Anthropic](https://console.anthropic.com) (opcional for IA).
 
-### 1. Clone o repositório
+### 1. Clone the repository
 ```bash
 git clone https://github.com/felipe2008pg1/FinWise.git
 cd FinWise
 ```
 
-### 2. Configure o backend
+### 2. Config the Backend
 ```bash
 cd backend
 python -m venv .venv
@@ -108,7 +107,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Crie o arquivo `.env` na pasta `backend`:
+Create the file `.env` in folder `backend`:
 ```env
 SUPABASE_URL=sua_url_aqui
 SUPABASE_ANON_KEY=sua_anon_key_aqui
@@ -117,8 +116,8 @@ JWT_SECRET=seu_jwt_secret_aqui
 ANTHROPIC_API_KEY=sua_chave_aqui
 ```
 
-### 3. Configure o banco de dados
-Execute o SQL abaixo no **SQL Editor** do Supabase:
+### 3. Config the database
+Execute the SQL below in the Supabase **SQL Editor**:
 
 ```sql
 CREATE TABLE categories (
@@ -188,48 +187,48 @@ CREATE POLICY "users_own_debts" ON debts FOR ALL USING (auth.uid() = user_id);
 CREATE POLICY "users_own_ai_messages" ON ai_messages FOR ALL USING (auth.uid() = user_id);
 ```
 
-### 4. Rode o backend
+### 4. Run the backend
 ```bash
 python -m uvicorn app.main:app --reload
 ```
-API disponível em: `http://localhost:8000`
-Documentação Swagger: `http://localhost:8000/docs`
+API available in: `http://localhost:8000`
+Documentation Swagger: `http://localhost:8000/docs`
 
-### 5. Rode o frontend
+### 5. Run the frontend
 ```bash
 cd ../frontend
 python -m http.server 3000
 ```
-Acesse: `http://localhost:3000`
+Open: `http://localhost:3000`
 
 ---
 
-## 🔐 Segurança
+## 🔐 Security
 
-- Senhas armazenadas com hash bcrypt pelo Supabase Auth.
-- Tokens JWT com expiração de 1 hora.
-- Row Level Security — cada usuário acessa apenas seus próprios dados.
-- Variáveis sensíveis em `.env` (nunca commitadas).
+- Passwords stored with bcrypt hash by Supabase Auth.
+- Tokens JWT with expiration for 1 hour.
+- Row Level Security — Each user only accesses their own data.
+- Sensitive variables in `.env` (Never committed).
 
 ---
 
 ## 🗺️ Roadmap
 
-- [ ] Deploy no Render (backend) + Vercel (frontend).
-- [ ] Exportação de relatórios em PDF.
-- [ ] Calculadoras de FGTS, férias e 13º salário.
-- [ ] Alertas de gastos por categoria.
+- [ ] Deploy in Render (backend) + Vercel (frontend).
+- [ ] Exportation for relatories in PDF.
+- [ ] Calculators with FGTS, vacations e 13º wage.
+- [ ] Spending alerts by category.
 - [ ] App mobile (PWA).
-- [ ] Configuração de SMTP para emails reais.
+- [ ] Configuration with SMTP for really emails.
 
 ---
 
-## 👨‍💻 Autor
+## 👨‍💻 Owner
 
 **Felipe** — [GitHub](https://github.com/felipe2008pg1)
 
 ---
 
-## 📄 Licença
+## 📄 Licence
 
-MIT License — sinta-se livre para usar e modificar.
+MIT License — Feel free to use and modify..
