@@ -91,7 +91,7 @@ FinWise/
 ### Prerequisites
 - Python 3.10+
 - Account in [Supabase](https://supabase.com).
-- Key API for [Anthropic](https://console.anthropic.com) (opcional for IA).
+- Key API by [Anthropic](https://console.anthropic.com) (opcional for IA).
 
 ### 1. Clone the repository
 ```bash
