@@ -109,11 +109,11 @@ pip install -r requirements.txt
 
 Create the file `.env` in folder `backend`:
 ```env
-SUPABASE_URL=sua_url_aqui
-SUPABASE_ANON_KEY=sua_anon_key_aqui
-SUPABASE_SERVICE_KEY=sua_service_key_aqui
-JWT_SECRET=seu_jwt_secret_aqui
-ANTHROPIC_API_KEY=sua_chave_aqui
+SUPABASE_URL=your_url_here
+SUPABASE_ANON_KEY=your_anon_key_here
+SUPABASE_SERVICE_KEY=your_service_key_here
+JWT_SECRET=your_jwt_secret_here
+ANTHROPIC_API_KEY=your_key_here
 ```
 
 ### 3. Config the database
