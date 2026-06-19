@@ -23,14 +23,13 @@ async def register(data: RegisterRequest):
         })
 
         if not res.user:
-            raise HTTPException(status_code=400, detail="Erro ao criar usuário")
+            raise HTTPException(status_code=400, detail="Error creating user")
 
-        # Confirma email automaticamente via SQL
         supabase.postgrest.schema("auth").from_("users").update({
             "email_confirmed_at": "now()"
         }).eq("id", res.user.id).execute()
 
-        return {"message": "Cadastro realizado! Já pode fazer login.", "user": res.user}
+        return {"message": "Registration complete! You can now log in.", "user": res.user}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -59,7 +58,7 @@ class UpdatePasswordRequest(BaseModel):
 async def forgot_password(data: ResetPasswordRequest):
     try:
         supabase.auth.reset_password_email(data.email)
-        return {"message": "Email de redefinição enviado!"}
+        return {"message": "Reset email sent!"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -68,6 +67,6 @@ async def update_password(data: UpdatePasswordRequest):
     try:
         supabase.auth.set_session(data.access_token, "")
         supabase.auth.update_user({"password": data.new_password})
-        return {"message": "Senha atualizada com sucesso!"}
+        return {"message": "Password updated successfully!"}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
