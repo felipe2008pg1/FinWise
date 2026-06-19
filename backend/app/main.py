@@ -7,7 +7,7 @@ security = HTTPBearer()
 
 app = FastAPI(
     title="FinWise API",
-    description="API da plataforma de educação financeira FinWise",
+    description="FinWise financial education platform API",
     version="1.0.0"
 )
 
@@ -20,12 +20,12 @@ app.add_middleware(
 )
 
 app.include_router(auth.router,         prefix="/auth",         tags=["Auth"])
-app.include_router(transactions.router, prefix="/transactions", tags=["Transações"])
-app.include_router(categories.router,   prefix="/categories",   tags=["Categorias"])
-app.include_router(goals.router,        prefix="/goals",        tags=["Metas"])
-app.include_router(debts.router,        prefix="/debts",        tags=["Dívidas"])
-app.include_router(ai_assistant.router, prefix="/ai",           tags=["IA"])
+app.include_router(transactions.router, prefix="/transactions", tags=["Transactions"])
+app.include_router(categories.router,   prefix="/categories",   tags=["Categories"])
+app.include_router(goals.router,        prefix="/goals",        tags=["Goals"])
+app.include_router(debts.router,        prefix="/debts",        tags=["Debts"])
+app.include_router(ai_assistant.router, prefix="/ai",           tags=["AI"])
 
 @app.get("/")
 def root():
-    return {"status": "FinWise API rodando"}
+    return {"status": "FinWise API is running"}
