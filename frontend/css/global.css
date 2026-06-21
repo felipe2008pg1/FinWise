@@ -47,7 +47,7 @@ a:hover {
   padding: 24px;
 }
 
-/* ===== BOTÕES ===== */
+/* ===== BUTTONS ===== */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -103,7 +103,7 @@ a:hover {
   width: 100%;
 }
 
-/* ===== FORMULÁRIOS ===== */
+/* ===== FORMS ===== */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -160,7 +160,7 @@ a:hover {
   color: var(--danger);
 }
 
-/* ===== ALERTAS ===== */
+/* ===== ALERTS ===== */
 .alert {
   padding: 12px 16px;
   border-radius: 8px;
@@ -194,7 +194,7 @@ a:hover {
   to { transform: rotate(360deg); }
 }
 
-/* ===== UTILITÁRIOS ===== */
+/* ===== UTILITIES ===== */
 .text-success { color: var(--success); }
 .text-danger  { color: var(--danger); }
 .text-muted   { color: var(--text-muted); }
