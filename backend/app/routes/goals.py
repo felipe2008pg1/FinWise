@@ -57,4 +57,4 @@ async def delete_goal(goal_id: str, token: str = Depends(get_token), user_id: st
         .eq("id", goal_id)\
         .eq("user_id", user_id)\
         .execute()
-    return {"message": "Meta deletada"}
+    return {"message": "Goal deleted"}
