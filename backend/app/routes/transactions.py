@@ -56,4 +56,4 @@ async def delete_transaction(transaction_id: str, token: str = Depends(get_token
         .eq("id", transaction_id)\
         .eq("user_id", user_id)\
         .execute()
-    return {"message": "Transação deletada"}
+    return {"message": "transaction deleted"}
