@@ -49,4 +49,4 @@ async def delete_category(category_id: str, token: str = Depends(get_token), use
         .eq("id", category_id)\
         .eq("user_id", user_id)\
         .execute()
-    return {"message": "Categoria deletada"}
+    return {"message": "Category deleted"}
