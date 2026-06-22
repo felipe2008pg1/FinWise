@@ -23,8 +23,8 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     token = credentials.credentials
     payload = decode_jwt(token)
     if not payload:
-        raise HTTPException(status_code=401, detail="Token inválido")
+        raise HTTPException(status_code=401, detail="Invalid Token")
     user_id = payload.get("sub")
     if not user_id:
-        raise HTTPException(status_code=401, detail="Token inválido")
+        raise HTTPException(status_code=401, detail="Invalid Token")
     return user_id
