@@ -1,4 +1,4 @@
-const API_URL = 'https://finwise-1cjo.onrender.com/';
+const API_URL = ' https://finwise-1cjo.onrender.com';
 
 // ===== TOKEN =====
 function getToken() {
