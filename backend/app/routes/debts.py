@@ -63,7 +63,7 @@ async def delete_debt(debt_id: str, token: str = Depends(get_token), user_id: st
         .eq("id", debt_id)\
         .eq("user_id", user_id)\
         .execute()
-    return {"message": "Dívida deletada"}
+    return {"message": "Debt deleted"}
 
 @router.get("/{debt_id}/simulate")
 async def simulate_debt(debt_id: str, token: str = Depends(get_token), user_id: str = Depends(get_current_user)):
@@ -74,7 +74,7 @@ async def simulate_debt(debt_id: str, token: str = Depends(get_token), user_id: 
         .execute()
 
     if not res.data:
-        raise HTTPException(status_code=404, detail="Dívida não encontrada")
+        raise HTTPException(status_code=404, detail="Debt not found")
 
     debt = res.data[0]
     remaining = debt["remaining_amount"]
@@ -82,7 +82,7 @@ async def simulate_debt(debt_id: str, token: str = Depends(get_token), user_id: 
     payment = debt["monthly_payment"]
 
     if not payment or payment <= 0:
-        return {"error": "Pagamento mensal não definido"}
+        return {"error": "Payment monthly not defined"}
 
     months = 0
     total_paid = 0
