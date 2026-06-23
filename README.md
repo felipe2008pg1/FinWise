@@ -229,7 +229,7 @@ Open: `http://localhost:3000`
 
 ## ⚠️ Warning
 
-The exhibition of frontend are in Portuguese because it is a system created for Brazilians, but the all documentation are written in English.
+The exhibition of frontend are in Portuguese because is a system created for Brazilians, but the all documentation are written in English.
 
 ---
 

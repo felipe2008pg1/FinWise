@@ -1,5 +1,4 @@
 const API_URL = 'https://finwise-1cjo.onrender.com';
-
 // ===== TOKEN =====
 function getToken() {
   return localStorage.getItem('finwise_token');
