@@ -12,6 +12,7 @@
 
 - **📊 Dashboard** — Visual summary of income, expenses, and balance with charts.
 - **💸 Transactions** — Complete control over income and expenses by category.
+- **🏷️ Categories** — Create, edit, and organize custom income/expense categories.
 - **🎯 Financial Goals** — Set goals and track your progress.
 - **💳 Debt Management** — Register your debts and simulate repayment times.
 - **🤖 FinBot IA** — Finance Assistent powered by Claude (Anthropic).
@@ -66,6 +67,7 @@ FinWise/
     │   ├── register.html
     │   ├── dashboard.html
     │   ├── transactions.html
+    │   ├── categories.html
     │   ├── goals.html
     │   ├── debts.html
     │   ├── ai-chat.html
@@ -79,6 +81,7 @@ FinWise/
         ├── auth.js
         ├── dashboard.js
         ├── transactions.js
+        ├── categories.js
         ├── goals.js
         ├── debts.js
         └── ai-chat.js
