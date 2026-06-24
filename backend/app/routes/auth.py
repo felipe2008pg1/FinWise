@@ -13,6 +13,25 @@ class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
+DEFAULT_CATEGORIES = [
+    {"name": "Salário",      "type": "income",  "color": "#22c55e", "icon": "💰"},
+    {"name": "Freelance",    "type": "income",  "color": "#14b8a6", "icon": "💻"},
+    {"name": "Investimentos","type": "income",  "color": "#06b6d4", "icon": "📈"},
+    {"name": "Outros",       "type": "income",  "color": "#84cc16", "icon": "✨"},
+    {"name": "Moradia",      "type": "expense", "color": "#f97316", "icon": "🏠"},
+    {"name": "Alimentação",  "type": "expense", "color": "#ef4444", "icon": "🍔"},
+    {"name": "Transporte",   "type": "expense", "color": "#3b82f6", "icon": "🚗"},
+    {"name": "Saúde",        "type": "expense", "color": "#ec4899", "icon": "💊"},
+    {"name": "Lazer",        "type": "expense", "color": "#a855f7", "icon": "🎮"},
+    {"name": "Educação",     "type": "expense", "color": "#6366f1", "icon": "📚"},
+    {"name": "Compras",      "type": "expense", "color": "#eab308", "icon": "🛍️"},
+    {"name": "Outros",       "type": "expense", "color": "#64748b", "icon": "📦"},
+]
+
+def create_default_categories(user_id: str, access_token: str):
+    rows = [{**cat, "user_id": user_id} for cat in DEFAULT_CATEGORIES]
+    supabase.postgrest.auth(access_token).from_("categories").insert(rows).execute()
+
 @router.post("/register")
 async def register(data: RegisterRequest):
     try:
@@ -25,6 +44,15 @@ async def register(data: RegisterRequest):
         if not res.user:
             raise HTTPException(status_code=400, detail="Error creating user")
 
+        # Se o cadastro já vier com sessão ativa (confirmação de email desligada),
+        # aproveita o token para criar as categorias padrão na hora.
+        if res.session:
+            try:
+                create_default_categories(res.user.id, res.session.access_token)
+            except Exception:
+                # Não deixa a criação de categorias quebrar o cadastro do usuário
+                pass
+
         return {"message": "Cadastro realizado! Verifique seu email para confirmar a conta.", "user": res.user}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -36,6 +64,18 @@ async def login(data: LoginRequest):
             "email": data.email,
             "password": data.password
         })
+
+        # Garante categorias padrão também no primeiro login
+        # (cobre o caso de cadastro com confirmação de email obrigatória,
+        # onde não havia sessão ativa no momento do /register)
+        try:
+            existing = supabase.postgrest.auth(res.session.access_token)\
+                .from_("categories").select("id").eq("user_id", res.user.id).limit(1).execute()
+            if not existing.data:
+                create_default_categories(res.user.id, res.session.access_token)
+        except Exception:
+            pass
+
         return {
             "access_token": res.session.access_token,
             "user": res.user
