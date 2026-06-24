@@ -3,34 +3,85 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Transações — FinWise</title>
+  <title>Categorias — FinWise</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/global.css">
   <link rel="stylesheet" href="../css/dashboard.css">
   <style>
-    .transactions-header {
+    .categories-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 24px;
     }
 
-    .filters {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 20px;
+    .categories-section {
+      margin-bottom: 32px;
     }
 
-    .filters select {
+    .categories-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 12px;
+    }
+
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .category-card {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 12px;
-      color: var(--text);
-      font-size: 14px;
-      outline: none;
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
+
+    .category-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .category-name {
+      font-size: 14px;
+      font-weight: 600;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .category-actions {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .icon-btn:hover { opacity: 1; }
 
     .modal-overlay {
       display: none;
@@ -42,9 +93,7 @@
       justify-content: center;
     }
 
-    .modal-overlay.active {
-      display: flex;
-    }
+    .modal-overlay.active { display: flex; }
 
     .modal {
       background: var(--bg-card);
@@ -52,7 +101,7 @@
       border-radius: var(--radius);
       padding: 32px;
       width: 100%;
-      max-width: 480px;
+      max-width: 440px;
     }
 
     .modal-header {
@@ -62,18 +111,8 @@
       margin-bottom: 24px;
     }
 
-    .modal-header h2 {
-      font-size: 18px;
-      font-weight: 600;
-    }
-
-    .close-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 20px;
-      cursor: pointer;
-    }
+    .modal-header h2 { font-size: 18px; font-weight: 600; }
+    .close-btn { background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
 
     .type-toggle {
       display: flex;
@@ -106,25 +145,59 @@
       color: var(--danger);
     }
 
-    .delete-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 16px;
-      padding: 4px;
-      transition: color 0.2s;
+    .icon-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
     }
 
-    .delete-btn:hover { color: var(--danger); }
+    .icon-option {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      font-size: 17px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s;
+    }
+
+    .icon-option.selected {
+      border-color: var(--primary);
+      background: rgba(99,102,241,0.15);
+    }
+
+    .color-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .color-option {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .color-option.selected {
+      border-color: var(--text);
+      transform: scale(1.1);
+    }
 
     .empty-state {
       text-align: center;
-      padding: 48px;
+      padding: 32px;
       color: var(--text-muted);
+      font-size: 13px;
     }
-
-    .empty-state p { font-size: 32px; margin-bottom: 8px; }
   </style>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -136,8 +209,8 @@
     <div class="sidebar-logo">💰 FinWise</div>
     <nav class="sidebar-nav">
       <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
-      <a href="transactions.html" class="nav-item active">💸 Transações</a>
-      <a href="categories.html" class="nav-item">🏷️ Categorias</a>
+      <a href="transactions.html" class="nav-item">💸 Transações</a>
+      <a href="categories.html" class="nav-item active">🏷️ Categorias</a>
       <a href="goals.html" class="nav-item">🎯 Metas</a>
       <a href="debts.html" class="nav-item">💳 Dívidas</a>
       <a href="ai-chat.html" class="nav-item">🤖 FinBot IA</a>
@@ -149,24 +222,21 @@
   </aside>
 
   <main class="main">
-    <div class="transactions-header">
-      <h1>Transações</h1>
-      <button class="btn btn-primary" onclick="openModal()">+ Nova transação</button>
+    <div class="categories-header">
+      <h1>Categorias</h1>
+      <button class="btn btn-primary" onclick="openModal()">+ Nova categoria</button>
     </div>
 
-    <div class="filters">
-      <select id="filterType" onchange="renderTransactions()">
-        <option value="all">Todos</option>
-        <option value="income">Receitas</option>
-        <option value="expense">Despesas</option>
-      </select>
-      <select id="filterCategory" onchange="renderTransactions()">
-        <option value="all">Todas categorias</option>
-      </select>
+    <div class="categories-section">
+      <p class="categories-section-title">Receitas</p>
+      <div class="categories-grid" id="incomeCategories">
+        <p class="text-muted text-center">Carregando...</p>
+      </div>
     </div>
 
-    <div class="card">
-      <div id="transactionsList">
+    <div class="categories-section">
+      <p class="categories-section-title">Despesas</p>
+      <div class="categories-grid" id="expenseCategories">
         <p class="text-muted text-center">Carregando...</p>
       </div>
     </div>
@@ -176,7 +246,7 @@
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
       <div class="modal-header">
-        <h2>Nova transação</h2>
+        <h2 id="modalTitle">Nova categoria</h2>
         <button class="close-btn" onclick="closeModal()">✕</button>
       </div>
 
@@ -188,35 +258,29 @@
       <div id="formError" class="alert alert-error hidden"></div>
 
       <div class="form-group">
-        <label>Título</label>
-        <input type="text" id="txTitle" placeholder="Ex: Salário, Aluguel...">
-      </div>
-      <div class="form-group">
-        <label>Valor (R$)</label>
-        <input type="number" id="txAmount" placeholder="0,00" step="0.01" min="0">
-      </div>
-      <div class="form-group">
-        <label>Data</label>
-        <input type="date" id="txDate">
-      </div>
-      <div class="form-group">
-        <label>Categoria</label>
-        <select id="txCategory">
-          <option value="">Sem categoria</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Observações</label>
-        <input type="text" id="txNotes" placeholder="Opcional">
+        <label>Nome</label>
+        <input type="text" id="catName" placeholder="Ex: Pets, Viagem...">
       </div>
 
-      <button class="btn btn-primary btn-full" id="saveBtn" onclick="saveTransaction()">
-        Salvar
+      <div class="form-group">
+        <label>Ícone</label>
+        <div class="icon-picker" id="iconPicker"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Cor</label>
+        <div class="color-picker" id="colorPicker"></div>
+      </div>
+
+      <input type="hidden" id="editingId">
+
+      <button class="btn btn-primary btn-full" id="saveBtn" onclick="saveCategory()">
+        Salvar categoria
       </button>
     </div>
   </div>
 
   <script src="../js/api.js"></script>
-  <script src="../js/transactions.js"></script>
+  <script src="../js/categories.js"></script>
 </body>
 </html>
