@@ -1,6 +1,6 @@
 # 💰 FinWise — Plataform for Finance Education
 
-![FinWise](https://img.shields.io/badge/FinWise-v1.0-6366f1?style=for-the-badge)
+![FinWise](https://img.shields.io/badge/FinWise-v1.1-6366f1?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-FastAPI-009688?style=for-the-badge&logo=fastapi)
 ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase)
 ![JavaScript](https://img.shields.io/badge/Frontend-HTML%2FCSS%2FJS-F7DF1E?style=for-the-badge&logo=javascript)
