@@ -44,13 +44,13 @@ async def register(data: RegisterRequest):
         if not res.user:
             raise HTTPException(status_code=400, detail="Error creating user")
 
-        # Se o cadastro já vier com sessão ativa (confirmação de email desligada),
-        # aproveita o token para criar as categorias padrão na hora.
+        # If the register alredy with active section (email confirmation off).
+        # Use the token to create the default categories in Hour.
         if res.session:
             try:
                 create_default_categories(res.user.id, res.session.access_token)
             except Exception:
-                # Não deixa a criação de categorias quebrar o cadastro do usuário
+                # Don't let category creation break the user registration.
                 pass
 
         return {"message": "Cadastro realizado! Verifique seu email para confirmar a conta.", "user": res.user}
@@ -65,9 +65,9 @@ async def login(data: LoginRequest):
             "password": data.password
         })
 
-        # Garante categorias padrão também no primeiro login
-        # (cobre o caso de cadastro com confirmação de email obrigatória,
-        # onde não havia sessão ativa no momento do /register)
+        # Ensures default categories are also assigned upon first login
+        # (covers the case of registration with mandatory email confirmation,
+        # where there was no active session at the time of /register)
         try:
             existing = supabase.postgrest.auth(res.session.access_token)\
                 .from_("categories").select("id").eq("user_id", res.user.id).limit(1).execute()
