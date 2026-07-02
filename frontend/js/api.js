@@ -1,4 +1,18 @@
 const API_URL = 'https://finwise-1cjo.onrender.com';
+
+// ===== SECURITY: XSS ESCAPE =====
+// Escapa caracteres HTML perigosos antes de inserir qualquer dado no DOM
+function escHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;');
+}
+
 // ===== TOKEN =====
 function getToken() {
   return localStorage.getItem('finwise_token');
@@ -47,7 +61,7 @@ async function request(method, path, body = null) {
   }
 
   const data = await res.json();
-  if (!res.ok) throw new Error(data.detail || 'Erro inesperado');
+  if (!res.ok) throw new Error(data.detail || 'Unexpected error');
   return data;
 }
 
@@ -60,7 +74,7 @@ const Auth = {
       body: JSON.stringify({ email, password })
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Erro ao fazer login');
+    if (!res.ok) throw new Error(data.detail || 'Login failed');
     setToken(data.access_token);
     setUser(data.user);
     return data;
@@ -73,7 +87,7 @@ const Auth = {
       body: JSON.stringify({ email, password, full_name })
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Erro ao cadastrar');
+    if (!res.ok) throw new Error(data.detail || 'Registration failed');
     return data;
   },
 
