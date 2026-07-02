@@ -1,24 +1,57 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from app.routes import auth, transactions, categories, goals, debts, ai_assistant
 
-# Rate limiter global — identifies by IP address
+# ===== RATE LIMITER =====
 limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
 
+# ===== SECURITY HEADERS MIDDLEWARE =====
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+
+        # Forces HTTPS for 1 year, includes subdomains
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
+        # Blocks clickjacking — the page cannot be embedded in an iframe.
+        response.headers["X-Frame-Options"] = "DENY"
+
+        # Blocks MIME sniffing — the browser must respect the declared Content-Type.
+        response.headers["X-Content-Type-Options"] = "nosniff"
+
+        # Does not send the Referer to other domains
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+
+        # Disables browser APIs that are unnecessary for a REST API.
+        response.headers["Permissions-Policy"] = (
+            "camera=(), microphone=(), geolocation=(), "
+            "payment=(), usb=(), magnetometer=(), gyroscope=()"
+        )
+
+        # CSP — API REST It only supports JSON, not HTML/JS, so it can be restrictive.
+        response.headers["Content-Security-Policy"] = "default-src 'none'"
+
+        # Remove header that exposes server info
+        response.headers.pop("Server", None)
+        response.headers.pop("X-Powered-By", None)
+
+        return response
+
+# ===== APP =====
 app = FastAPI(
     title="FinWise API",
     description="FinWise financial education platform API",
     version="1.0.0",
-    # Disables automatic exposure of docs in production (optional — comment out if you want to keep /docs)
-    # docs_url=None,
-    # redoc_url=None,
 )
 
-# Registers the limiter and the 429 error handler.
+# Order matters: SecurityHeaders before CORS.
+app.add_middleware(SecurityHeadersMiddleware)
+
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
