@@ -15,25 +15,25 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
 
-        # Força HTTPS por 1 ano, inclui subdomínios
+        # Forces HTTPS for 1 year, includes subdomains
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
-        # Bloqueia clickjacking — a página não pode ser embutida em iframe
+        # Blocks clickjacking — the page cannot be embedded in an iframe.
         response.headers["X-Frame-Options"] = "DENY"
 
-        # Bloqueia MIME sniffing — browser deve respeitar o Content-Type declarado
+        # Blocks MIME sniffing — the browser must respect the declared Content-Type.
         response.headers["X-Content-Type-Options"] = "nosniff"
 
-        # Não envia o Referer para outros domínios
+        # Does not send the Referer to other domains
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
-        # Desabilita APIs do browser desnecessárias para uma API REST
+        # Disables browser APIs that are unnecessary for a REST API.
         response.headers["Permissions-Policy"] = (
             "camera=(), microphone=(), geolocation=(), "
             "payment=(), usb=(), magnetometer=(), gyroscope=()"
         )
 
-        # CSP — API REST só serve JSON, não HTML/JS, então pode ser restritivo
+        # CSP — REST APIs serve only JSON, not HTML/JS, so it can be restrictive.
         response.headers["Content-Security-Policy"] = "default-src 'none'"
 
         # Remove header que expõe info do servidor
@@ -52,7 +52,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Ordem importa: SecurityHeaders antes do CORS
+# Order matters: SecurityHeaders before CORS.
 app.add_middleware(SecurityHeadersMiddleware)
 
 app.state.limiter = limiter
