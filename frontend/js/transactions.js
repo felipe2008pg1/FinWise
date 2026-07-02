@@ -7,7 +7,6 @@ let transactions = [];
 let categories = [];
 let selectedType = 'income';
 
-// Data de hoje no input
 document.getElementById('txDate').valueAsDate = new Date();
 
 function formatMoney(value) {
@@ -38,7 +37,7 @@ function populateCategorySelect() {
   const select = document.getElementById('txCategory');
   const filtered = categories.filter(c => c.type === selectedType);
   select.innerHTML = '<option value="">Sem categoria</option>' +
-    filtered.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+    filtered.map(c => `<option value="${escHtml(c.id)}">${escHtml(c.icon)} ${escHtml(c.name)}</option>`).join('');
 }
 
 function renderTransactions() {
@@ -63,17 +62,17 @@ function renderTransactions() {
   container.innerHTML = filtered.map(t => `
     <div class="transaction-item">
       <div class="transaction-info">
-        <div class="transaction-icon">${t.categories?.icon || (t.type === 'income' ? '📈' : '📉')}</div>
+        <div class="transaction-icon">${escHtml(t.categories?.icon) || (t.type === 'income' ? '📈' : '📉')}</div>
         <div>
-          <p class="transaction-title">${t.title}</p>
-          <p class="transaction-date">${formatDate(t.date)} ${t.categories ? '· ' + t.categories.name : ''}</p>
+          <p class="transaction-title">${escHtml(t.title)}</p>
+          <p class="transaction-date">${escHtml(formatDate(t.date))} ${t.categories ? '· ' + escHtml(t.categories.name) : ''}</p>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:12px">
         <span class="transaction-amount ${t.type === 'income' ? 'text-success' : 'text-danger'}">
-          ${t.type === 'income' ? '+' : '-'} ${formatMoney(t.amount)}
+          ${t.type === 'income' ? '+' : '-'} ${escHtml(formatMoney(t.amount))}
         </span>
-        <button class="delete-btn" onclick="deleteTransaction('${t.id}')">🗑</button>
+        <button class="delete-btn" onclick="deleteTransaction('${escHtml(t.id)}')">🗑</button>
       </div>
     </div>
   `).join('');
@@ -123,10 +122,9 @@ async function loadData() {
     Categories.getAll()
   ]);
 
-  // Popula filtro de categorias
   const filterCat = document.getElementById('filterCategory');
   filterCat.innerHTML = '<option value="all">Todas categorias</option>' +
-    categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    categories.map(c => `<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
 
   populateCategorySelect();
   renderTransactions();
