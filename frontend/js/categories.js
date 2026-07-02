@@ -14,12 +14,12 @@ const COLORS = ['#6366f1','#22c55e','#ef4444','#f97316','#eab308','#14b8a6','#3b
 function renderPickers() {
   const iconPicker = document.getElementById('iconPicker');
   iconPicker.innerHTML = ICONS.map(icon => `
-    <button type="button" class="icon-option ${icon === selectedIcon ? 'selected' : ''}" onclick="selectIcon('${icon}')">${icon}</button>
+    <button type="button" class="icon-option ${icon === selectedIcon ? 'selected' : ''}" onclick="selectIcon('${escHtml(icon)}')">${icon}</button>
   `).join('');
 
   const colorPicker = document.getElementById('colorPicker');
   colorPicker.innerHTML = COLORS.map(color => `
-    <button type="button" class="color-option ${color === selectedColor ? 'selected' : ''}" style="background:${color}" onclick="selectColor('${color}')"></button>
+    <button type="button" class="color-option ${color === selectedColor ? 'selected' : ''}" style="background:${escHtml(color)}" onclick="selectColor('${escHtml(color)}')"></button>
   `).join('');
 }
 
@@ -54,7 +54,6 @@ function openModal() {
 function openEditModal(id) {
   const cat = categories.find(c => c.id === id);
   if (!cat) return;
-
   document.getElementById('modalTitle').textContent = 'Editar categoria';
   document.getElementById('editingId').value = cat.id;
   document.getElementById('catName').value = cat.name;
@@ -89,11 +88,11 @@ function renderCategories() {
 function renderCard(cat) {
   return `
     <div class="category-card">
-      <div class="category-icon" style="background:${cat.color}25; color:${cat.color}">${cat.icon}</div>
-      <span class="category-name">${cat.name}</span>
+      <div class="category-icon" style="background:${escHtml(cat.color)}25; color:${escHtml(cat.color)}">${cat.icon}</div>
+      <span class="category-name">${escHtml(cat.name)}</span>
       <div class="category-actions">
-        <button class="icon-btn" onclick="openEditModal('${cat.id}')">✏️</button>
-        <button class="icon-btn" onclick="removeCategory('${cat.id}')">🗑</button>
+        <button class="icon-btn" onclick="openEditModal('${escHtml(cat.id)}')">✏️</button>
+        <button class="icon-btn" onclick="removeCategory('${escHtml(cat.id)}')">🗑</button>
       </div>
     </div>
   `;
