@@ -15,30 +15,33 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
 
-        # Forces HTTPS for 1 year, includes subdomains
+        # Força HTTPS por 1 ano, inclui subdomínios
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
-        # Blocks clickjacking — the page cannot be embedded in an iframe.
+        # Bloqueia clickjacking — a página não pode ser embutida em iframe
         response.headers["X-Frame-Options"] = "DENY"
 
-        # Blocks MIME sniffing — the browser must respect the declared Content-Type.
+        # Bloqueia MIME sniffing — browser deve respeitar o Content-Type declarado
         response.headers["X-Content-Type-Options"] = "nosniff"
 
-        # Does not send the Referer to other domains
+        # Não envia o Referer para outros domínios
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
-        # Disables browser APIs that are unnecessary for a REST API.
+        # Desabilita APIs do browser desnecessárias para uma API REST
         response.headers["Permissions-Policy"] = (
             "camera=(), microphone=(), geolocation=(), "
             "payment=(), usb=(), magnetometer=(), gyroscope=()"
         )
 
-        # CSP — API REST It only supports JSON, not HTML/JS, so it can be restrictive.
+        # CSP — API REST só serve JSON, não HTML/JS, então pode ser restritivo
         response.headers["Content-Security-Policy"] = "default-src 'none'"
 
-        # Remove header that exposes server info
-        response.headers.pop("Server", None)
-        response.headers.pop("X-Powered-By", None)
+        # Remove header que expõe info do servidor
+        for h in ["Server", "X-Powered-By"]:
+            try:
+                del response.headers[h]
+            except KeyError:
+                pass
 
         return response
 
@@ -49,7 +52,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Order matters: SecurityHeaders before CORS.
+# Ordem importa: SecurityHeaders antes do CORS
 app.add_middleware(SecurityHeadersMiddleware)
 
 app.state.limiter = limiter
