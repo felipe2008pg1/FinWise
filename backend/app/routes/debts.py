@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from app.database import supabase
 from app.dependencies import get_current_user, get_token
@@ -8,18 +8,18 @@ from postgrest.exceptions import APIError
 router = APIRouter()
 
 class DebtRequest(BaseModel):
-    title: str
-    total_amount: float
-    remaining_amount: float
-    interest_rate: Optional[float] = 0
-    monthly_payment: Optional[float] = None
-    due_day: Optional[int] = None
+    title: str = Field(..., min_length=1, max_length=200)
+    total_amount: float = Field(..., gt=0)
+    remaining_amount: float = Field(..., ge=0)
+    interest_rate: Optional[float] = Field(0, ge=0, le=100)
+    monthly_payment: Optional[float] = Field(None, ge=0)
+    due_day: Optional[int] = Field(None, ge=1, le=31)
 
-def handle_supabase_error(e: Exception):
+def handle_supabase_error(e: APIError):
     msg = str(e)
     if "JWT expired" in msg or "PGRST303" in msg:
         raise HTTPException(status_code=401, detail="Session expired. Please log in again.")
-    raise HTTPException(status_code=500, detail=msg)
+    raise HTTPException(status_code=500, detail="An internal error occurred. Please try again.")
 
 @router.get("/")
 async def get_debts(token: str = Depends(get_token), user_id: str = Depends(get_current_user)):
@@ -96,13 +96,13 @@ async def simulate_debt(debt_id: str, token: str = Depends(get_token), user_id: 
             .eq("user_id", user_id)\
             .execute()
         if not res.data:
-            raise HTTPException(status_code=404, detail="Debt not found")
+            raise HTTPException(status_code=404, detail="Debt not found.")
         debt = res.data[0]
         remaining = debt["remaining_amount"]
         rate = debt["interest_rate"] / 100 / 12
         payment = debt["monthly_payment"]
         if not payment or payment <= 0:
-            return {"error": "Monthly payment not defined"}
+            return {"error": "Monthly payment not defined."}
         months = 0
         total_paid = 0
         while remaining > 0 and months < 600:
@@ -118,5 +118,7 @@ async def simulate_debt(debt_id: str, token: str = Depends(get_token), user_id: 
             "total_paid": round(total_paid, 2),
             "total_interest": round(total_paid - debt["remaining_amount"], 2)
         }
+    except HTTPException:
+        raise
     except APIError as e:
         handle_supabase_error(e)
