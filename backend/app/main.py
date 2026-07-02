@@ -36,7 +36,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # CSP — REST APIs serve only JSON, not HTML/JS, so it can be restrictive.
         response.headers["Content-Security-Policy"] = "default-src 'none'"
 
-        # Remove header que expõe info do servidor
+        # Remove header that exposes server info
         for h in ["Server", "X-Powered-By"]:
             try:
                 del response.headers[h]
