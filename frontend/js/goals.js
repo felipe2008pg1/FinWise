@@ -1,5 +1,3 @@
-console.log('goals.js carregado');
-
 if (!Auth.isLoggedIn()) window.location.href = '/pages/login.html';
 
 const user = getUser();
@@ -11,13 +9,26 @@ function formatMoney(value) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 }
 
+function formatDate(dateStr) {
+  if (!dateStr) return 'Sem prazo';
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR');
+}
+
 function openModal() {
   document.getElementById('modalOverlay').classList.add('active');
+  document.getElementById('goalTitle').value = '';
+  document.getElementById('goalTarget').value = '';
+  document.getElementById('goalCurrent').value = '0';
+  document.getElementById('goalDeadline').value = '';
+  document.getElementById('formError').classList.add('hidden');
 }
 
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('active');
-  document.getElementById('formError').classList.add('hidden');
+}
+
+function closeAddValueModal() {
+  document.getElementById('addValueModal').classList.remove('active');
 }
 
 function openAddValueModal(id, current, target) {
@@ -26,34 +37,6 @@ function openAddValueModal(id, current, target) {
   document.getElementById('addValueTarget').value = target;
   document.getElementById('addValueInput').value = '';
   document.getElementById('addValueModal').classList.add('active');
-}
-
-function closeAddValueModal() {
-  document.getElementById('addValueModal').classList.remove('active');
-}
-
-async function confirmAddValue() {
-  const id = document.getElementById('addValueGoalId').value;
-  const current = parseFloat(document.getElementById('addValueCurrent').value);
-  const target = parseFloat(document.getElementById('addValueTarget').value);
-  const add = parseFloat(document.getElementById('addValueInput').value);
-
-  if (!add || add <= 0) return;
-
-  const newAmount = Math.min(current + add, target);
-  const goal = goals.find(g => g.id === id);
-
-  await Goals.update(id, {
-    title: goal.title,
-    target_amount: goal.target_amount,
-    current_amount: newAmount,
-    deadline: goal.deadline || null
-  });
-
-  if (newAmount >= target) await Goals.complete(id);
-
-  closeAddValueModal();
-  await loadGoals();
 }
 
 function renderGoals() {
@@ -68,54 +51,29 @@ function renderGoals() {
     return;
   }
 
-  const active = goals.filter(g => g.status === 'active');
-  const completed = goals.filter(g => g.status === 'completed');
-
-  let html = '<div class="goals-grid">';
-
-  active.forEach(g => {
-    const pct = Math.min((g.current_amount / g.target_amount) * 100, 100).toFixed(0);
-    html += `
-      <div class="goal-card">
+  container.innerHTML = `<div class="goals-grid">${goals.map(g => {
+    const pct = Math.min(100, Math.round((g.current_amount / g.target_amount) * 100));
+    return `
+      <div class="goal-card ${g.status === 'completed' ? 'goal-completed' : ''}">
         <div class="goal-card-header">
           <div>
-            <p class="goal-card-title">${g.title}</p>
-            ${g.deadline ? `<p class="goal-card-deadline">📅 Prazo: ${new Date(g.deadline + 'T00:00:00').toLocaleDateString('pt-BR')}</p>` : ''}
+            <p class="goal-card-title">${escHtml(g.title)}</p>
+            <p class="goal-card-deadline">Prazo: ${escHtml(formatDate(g.deadline))}</p>
           </div>
           <div class="goal-card-actions">
-            <button class="icon-btn" onclick="openAddValueModal('${g.id}', ${g.current_amount}, ${g.target_amount})" title="Adicionar valor">➕</button>
-            <button class="icon-btn" onclick="deleteGoal('${g.id}')" title="Deletar">🗑</button>
+            ${g.status !== 'completed' ? `<button class="icon-btn" onclick="openAddValueModal('${escHtml(g.id)}', ${g.current_amount}, ${g.target_amount})">➕</button>` : ''}
+            <button class="icon-btn" onclick="completeGoal('${escHtml(g.id)}')">✅</button>
+            <button class="icon-btn" onclick="deleteGoal('${escHtml(g.id)}')">🗑</button>
           </div>
         </div>
-        <p class="goal-card-current">${formatMoney(g.current_amount)}</p>
-        <p class="goal-card-target">de ${formatMoney(g.target_amount)}</p>
-        <div class="progress-bar" style="margin-top:12px">
+        <p class="goal-card-current">${escHtml(formatMoney(g.current_amount))}</p>
+        <p class="goal-card-target">de ${escHtml(formatMoney(g.target_amount))}</p>
+        <div class="progress-bar">
           <div class="progress-fill" style="width:${pct}%"></div>
         </div>
         <p class="goal-card-pct">${pct}% concluído</p>
       </div>`;
-  });
-
-  if (completed.length > 0) {
-    html += '</div><h2 style="margin:24px 0 16px;font-size:16px;color:var(--text-muted)">✅ Concluídas</h2><div class="goals-grid">';
-    completed.forEach(g => {
-      html += `
-        <div class="goal-card goal-completed">
-          <div class="goal-card-header">
-            <p class="goal-card-title">✅ ${g.title}</p>
-            <button class="icon-btn" onclick="deleteGoal('${g.id}')">🗑</button>
-          </div>
-          <p class="goal-card-current">${formatMoney(g.target_amount)}</p>
-          <p class="goal-card-target">Meta atingida!</p>
-          <div class="progress-bar" style="margin-top:12px">
-            <div class="progress-fill" style="width:100%;background:var(--success)"></div>
-          </div>
-        </div>`;
-    });
-  }
-
-  html += '</div>';
-  container.innerHTML = html;
+  }).join('')}</div>`;
 }
 
 async function saveGoal() {
@@ -134,6 +92,7 @@ async function saveGoal() {
 
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner"></div>';
+  error.classList.add('hidden');
 
   try {
     await Goals.create({ title, target_amount, current_amount, deadline });
@@ -146,6 +105,34 @@ async function saveGoal() {
     btn.disabled = false;
     btn.innerHTML = 'Salvar meta';
   }
+}
+
+async function confirmAddValue() {
+  const id = document.getElementById('addValueGoalId').value;
+  const current = parseFloat(document.getElementById('addValueCurrent').value);
+  const target = parseFloat(document.getElementById('addValueTarget').value);
+  const add = parseFloat(document.getElementById('addValueInput').value);
+
+  if (!add || add <= 0) return;
+
+  const newCurrent = Math.min(current + add, target);
+  const status = newCurrent >= target ? 'completed' : 'active';
+
+  await Goals.update(id, {
+    title: goals.find(g => g.id === id)?.title,
+    target_amount: target,
+    current_amount: newCurrent,
+    deadline: goals.find(g => g.id === id)?.deadline
+  });
+
+  closeAddValueModal();
+  await loadGoals();
+}
+
+async function completeGoal(id) {
+  if (!confirm('Marcar meta como concluída?')) return;
+  await Goals.complete(id);
+  await loadGoals();
 }
 
 async function deleteGoal(id) {
