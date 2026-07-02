@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import date
 from app.database import supabase
@@ -9,16 +9,16 @@ from postgrest.exceptions import APIError
 router = APIRouter()
 
 class GoalRequest(BaseModel):
-    title: str
-    target_amount: float
-    current_amount: Optional[float] = 0
+    title: str = Field(..., min_length=1, max_length=200)
+    target_amount: float = Field(..., gt=0)
+    current_amount: Optional[float] = Field(0, ge=0)
     deadline: Optional[date] = None
 
-def handle_supabase_error(e: Exception):
+def handle_supabase_error(e: APIError):
     msg = str(e)
     if "JWT expired" in msg or "PGRST303" in msg:
         raise HTTPException(status_code=401, detail="Session expired. Please log in again.")
-    raise HTTPException(status_code=500, detail=msg)
+    raise HTTPException(status_code=500, detail="An internal error occurred. Please try again.")
 
 @router.get("/")
 async def get_goals(token: str = Depends(get_token), user_id: str = Depends(get_current_user)):
