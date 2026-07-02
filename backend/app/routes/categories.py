@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from app.database import supabase
 from app.dependencies import get_current_user, get_token
@@ -8,16 +8,16 @@ from postgrest.exceptions import APIError
 router = APIRouter()
 
 class CategoryRequest(BaseModel):
-    name: str
-    type: str
-    color: Optional[str] = '#6366f1'
-    icon: Optional[str] = '💰'
+    name: str = Field(..., min_length=1, max_length=100)
+    type: str = Field(..., pattern="^(income|expense)$")
+    color: Optional[str] = Field('#6366f1', pattern="^#[0-9a-fA-F]{6}$")
+    icon: Optional[str] = Field('💰', max_length=10)
 
-def handle_supabase_error(e: Exception):
+def handle_supabase_error(e: APIError):
     msg = str(e)
     if "JWT expired" in msg or "PGRST303" in msg:
         raise HTTPException(status_code=401, detail="Session expired. Please log in again.")
-    raise HTTPException(status_code=500, detail=msg)
+    raise HTTPException(status_code=500, detail="An internal error occurred. Please try again.")
 
 @router.get("/")
 async def get_categories(token: str = Depends(get_token), user_id: str = Depends(get_current_user)):
