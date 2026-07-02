@@ -4,33 +4,42 @@ const user = getUser();
 if (user) document.getElementById('userName').textContent = user.user_metadata?.full_name || user.email;
 
 const chatBox = document.getElementById('chatBox');
-const chatInput = document.getElementById('chatInput');
-const sendBtn = document.getElementById('sendBtn');
 
-function formatTime() {
+function getTime() {
   return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
-function addMessage(role, content) {
+function appendMessage(role, content) {
+  // Removes a welcome message if it exists.
   const welcome = chatBox.querySelector('.welcome-message');
   if (welcome) welcome.remove();
 
   const div = document.createElement('div');
   div.className = `message ${role}`;
-  div.innerHTML = `
-    <div class="message-avatar">${role === 'user' ? '👤' : '🤖'}</div>
-    <div>
-      <div class="message-content">${content.replace(/\n/g, '<br>')}</div>
-      <div class="message-time">${formatTime()}</div>
-    </div>
-  `;
+
+  const avatar = document.createElement('div');
+  avatar.className = 'message-avatar';
+  avatar.textContent = role === 'user' ? '👤' : '🤖';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'message-content';
+  // textContent instead of innerHTML — no XSS risk
+  bubble.textContent = content;
+
+  const time = document.createElement('p');
+  time.className = 'message-time';
+  time.textContent = getTime();
+  bubble.appendChild(time);
+
+  div.appendChild(avatar);
+  div.appendChild(bubble);
   chatBox.appendChild(div);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
 function showTyping() {
   const div = document.createElement('div');
-  div.className = 'message assistant';
+  div.className = 'message';
   div.id = 'typingIndicator';
   div.innerHTML = `
     <div class="message-avatar">🤖</div>
@@ -38,15 +47,39 @@ function showTyping() {
       <div class="typing-dot"></div>
       <div class="typing-dot"></div>
       <div class="typing-dot"></div>
-    </div>
-  `;
+    </div>`;
   chatBox.appendChild(div);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
 function removeTyping() {
-  const indicator = document.getElementById('typingIndicator');
-  if (indicator) indicator.remove();
+  const typing = document.getElementById('typingIndicator');
+  if (typing) typing.remove();
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const btn = document.getElementById('sendBtn');
+  const content = input.value.trim();
+  if (!content) return;
+
+  input.value = '';
+  btn.disabled = true;
+  appendMessage('user', content);
+  showTyping();
+
+  try {
+    const res = await AI.chat(content);
+    removeTyping();
+    appendMessage('assistant', res.reply);
+  } catch (err) {
+    removeTyping();
+    const noCredits = document.getElementById('noCredits');
+    if (noCredits) noCredits.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    input.focus();
+  }
 }
 
 function handleKey(e) {
@@ -57,41 +90,17 @@ function handleKey(e) {
 }
 
 function sendSuggestion(btn) {
-  chatInput.value = btn.textContent;
+  document.getElementById('chatInput').value = btn.textContent;
   sendMessage();
 }
 
-async function sendMessage() {
-  const content = chatInput.value.trim();
-  if (!content) return;
-
-  chatInput.value = '';
-  sendBtn.disabled = true;
-
-  addMessage('user', content);
-  showTyping();
-
-  try {
-    const res = await AI.chat(content);
-    removeTyping();
-    addMessage('assistant', res.reply);
-  } catch (err) {
-    removeTyping();
-    document.getElementById('noCredits').style.display = 'block';
-    addMessage('assistant', '⚠️ Não consegui processar sua mensagem. Verifique se há créditos na conta Anthropic.');
-  } finally {
-    sendBtn.disabled = false;
-    chatInput.focus();
-  }
-}
-
 async function clearHistory() {
-  if (!confirm('Limpar todo o histórico do chat?')) return;
+  if (!confirm('Limpar todo o histórico de conversa?')) return;
   await AI.clearHistory();
   chatBox.innerHTML = `
     <div class="welcome-message">
       <h3>👋 Olá! Sou o FinBot</h3>
-      <p>Histórico limpo! Como posso te ajudar?</p>
+      <p>Seu assistente financeiro pessoal. Posso analisar seus gastos, sugerir economias e te ajudar a planejar seu futuro financeiro.</p>
       <div class="suggestions">
         <button class="suggestion-btn" onclick="sendSuggestion(this)">Como estão minhas finanças?</button>
         <button class="suggestion-btn" onclick="sendSuggestion(this)">Onde posso economizar?</button>
@@ -101,13 +110,15 @@ async function clearHistory() {
     </div>`;
 }
 
-// Carrega histórico anterior
+// Load previous history upon opening
 async function loadHistory() {
   try {
     const history = await AI.getHistory();
-    history.forEach(msg => addMessage(msg.role, msg.content));
-  } catch (err) {
-    console.log('Sem histórico');
+    if (history && history.length > 0) {
+      history.forEach(msg => appendMessage(msg.role, msg.content));
+    }
+  } catch (e) {
+    // Silent failure — empty history is not critical
   }
 }
 
