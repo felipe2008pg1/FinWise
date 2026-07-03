@@ -1,11 +1,18 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, EmailStr
 from app.database import supabase
+from app.logger import (
+    log_auth_success, log_auth_failure,
+    log_register, log_password_reset
+)
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
+
+def get_ip(request: Request) -> str:
+    return request.client.host if request.client else "unknown"
 
 class RegisterRequest(BaseModel):
     email: EmailStr
@@ -35,10 +42,10 @@ def create_default_categories(user_id: str, access_token: str):
     rows = [{**cat, "user_id": user_id} for cat in DEFAULT_CATEGORIES]
     supabase.postgrest.auth(access_token).from_("categories").insert(rows).execute()
 
-# 5 attempts per minute per IP — then blocks with a 429
 @router.post("/register")
 @limiter.limit("5/minute")
 async def register(request: Request, data: RegisterRequest):
+    ip = get_ip(request)
     try:
         res = supabase.auth.sign_up({
             "email": data.email,
@@ -47,7 +54,10 @@ async def register(request: Request, data: RegisterRequest):
         })
 
         if not res.user:
+            log_register(email=data.email, ip=ip, success=False)
             raise HTTPException(status_code=400, detail="Registration failed. Please try again.")
+
+        log_register(email=data.email, ip=ip, success=True)
 
         if res.session:
             try:
@@ -55,25 +65,25 @@ async def register(request: Request, data: RegisterRequest):
             except Exception:
                 pass
 
-        # Generic message — does not reveal whether the email already exists (anti-enumeration)
         return {"message": "Registration complete! Please check your email to confirm your account."}
     except HTTPException:
         raise
     except Exception:
-        # Never exposes internal details
+        log_register(email=data.email, ip=ip, success=False)
         raise HTTPException(status_code=400, detail="Registration failed. Please check your data and try again.")
 
-# 10 attempts per minute per IP — brute-force protection
 @router.post("/login")
 @limiter.limit("10/minute")
 async def login(request: Request, data: LoginRequest):
+    ip = get_ip(request)
     try:
         res = supabase.auth.sign_in_with_password({
             "email": data.email,
             "password": data.password
         })
 
-        # Creates default categories upon first login if they do not exist.
+        log_auth_success(user_id=res.user.id, email=data.email, ip=ip)
+
         try:
             existing = supabase.postgrest.auth(res.session.access_token)\
                 .from_("categories").select("id").eq("user_id", res.user.id).limit(1).execute()
@@ -89,7 +99,7 @@ async def login(request: Request, data: LoginRequest):
     except HTTPException:
         raise
     except Exception:
-        # Generic message — does not reveal whether the email exists (anti-enumeration)
+        log_auth_failure(email=data.email, ip=ip, reason="invalid_credentials")
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
 class ResetPasswordRequest(BaseModel):
@@ -99,15 +109,15 @@ class UpdatePasswordRequest(BaseModel):
     new_password: str
     access_token: str
 
-# 3 attempts per minute — prevents email-sending abuse
 @router.post("/forgot-password")
 @limiter.limit("3/minute")
 async def forgot_password(request: Request, data: ResetPasswordRequest):
+    ip = get_ip(request)
     try:
         supabase.auth.reset_password_email(data.email)
     except Exception:
         pass
-    # Always returns success — does not reveal whether the email exists.
+    log_password_reset(email=data.email, ip=ip)
     return {"message": "If this email is registered, you will receive a reset link shortly."}
 
 @router.post("/update-password")
