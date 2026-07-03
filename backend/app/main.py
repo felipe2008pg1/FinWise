@@ -6,6 +6,8 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from app.routes import auth, transactions, categories, goals, debts, ai_assistant
+from app.logger import security_logger, log_rate_limit, log_internal_error
+import time
 
 # ===== RATE LIMITER =====
 limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
@@ -15,33 +17,55 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
 
-        # Forces HTTPS for 1 year, includes subdomains
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-
-        # Blocks clickjacking — the page cannot be embedded in an iframe.
         response.headers["X-Frame-Options"] = "DENY"
-
-        # Blocks MIME sniffing — the browser must respect the declared Content-Type.
         response.headers["X-Content-Type-Options"] = "nosniff"
-
-        # Does not send the Referer to other domains
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-
-        # Disables browser APIs that are unnecessary for a REST API.
         response.headers["Permissions-Policy"] = (
             "camera=(), microphone=(), geolocation=(), "
             "payment=(), usb=(), magnetometer=(), gyroscope=()"
         )
-
-        # CSP — REST APIs serve only JSON, not HTML/JS, so it can be restrictive.
         response.headers["Content-Security-Policy"] = "default-src 'none'"
 
-        # Remove header that exposes server info
         for h in ["Server", "X-Powered-By"]:
             try:
                 del response.headers[h]
             except KeyError:
                 pass
+
+        return response
+
+# ===== REQUEST LOGGING MIDDLEWARE =====
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start = time.time()
+        ip = request.client.host if request.client else "unknown"
+        path = request.url.path
+        method = request.method
+
+        response = await call_next(request)
+
+        duration_ms = round((time.time() - start) * 1000)
+        status = response.status_code
+
+        # Logs only security-relevant events
+        if status == 429:
+            log_rate_limit(ip=ip, path=path)
+        elif status == 401:
+            security_logger.warning(
+                f'HTTP_401 | method={method} | path={path} | ip={ip} | duration={duration_ms}ms'
+            )
+        elif status == 403:
+            security_logger.warning(
+                f'HTTP_403 | method={method} | path={path} | ip={ip} | duration={duration_ms}ms'
+            )
+        elif status >= 500:
+            log_internal_error(path=path, error_type=f'HTTP_{status}', ip=ip)
+        elif path.startswith('/auth/'):
+            # Logs all auth calls for auditing purposes.
+            security_logger.info(
+                f'AUTH_REQUEST | method={method} | path={path} | status={status} | ip={ip} | duration={duration_ms}ms'
+            )
 
         return response
 
@@ -52,7 +76,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Order matters: SecurityHeaders before CORS.
+app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 
 app.state.limiter = limiter
