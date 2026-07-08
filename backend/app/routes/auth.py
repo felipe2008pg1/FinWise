@@ -3,12 +3,12 @@ from pydantic import BaseModel, EmailStr, Field
 from app.database import supabase
 from app.logger import (
     log_auth_success, log_auth_failure,
-    log_register, log_password_reset
+    log_register, log_password_reset,
+    security_logger
 )
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 import time
-import hmac
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -16,8 +16,6 @@ limiter = Limiter(key_func=get_remote_address)
 def get_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
-# Minimum response time in seconds to prevent timing attacks
-# Ensures that success and failure responses take the same amount of time.
 MIN_RESPONSE_TIME = 0.3
 
 def constant_time_response(start: float):
@@ -33,6 +31,9 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=1, max_length=128)
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str = Field(..., min_length=1)
 
 DEFAULT_CATEGORIES = [
     {"name": "Salary",        "type": "income",  "color": "#22c55e", "icon": "💰"},
@@ -67,9 +68,7 @@ async def register(request: Request, data: RegisterRequest):
 
         if not res.user:
             log_register(email=data.email, ip=ip, success=False)
-            # Same response time as a successful attempt — anti-timing attack
             constant_time_response(start)
-            # Same message as success — anti-enumeration
             return {"message": "Registration complete! Please check your email to confirm your account."}
 
         log_register(email=data.email, ip=ip, success=True)
@@ -87,7 +86,6 @@ async def register(request: Request, data: RegisterRequest):
     except Exception:
         log_register(email=data.email, ip=ip, success=False)
         constant_time_response(start)
-        # Same message regardless of the actual reason for the failure.
         return {"message": "Registration complete! Please check your email to confirm your account."}
 
 @router.post("/login")
@@ -114,6 +112,8 @@ async def login(request: Request, data: LoginRequest):
         constant_time_response(start)
         return {
             "access_token": res.session.access_token,
+            # Returns the refresh token so the frontend can renew the session.
+            "refresh_token": res.session.refresh_token,
             "user": res.user
         }
     except HTTPException:
@@ -121,8 +121,36 @@ async def login(request: Request, data: LoginRequest):
     except Exception:
         log_auth_failure(email=data.email, ip=ip, reason="invalid_credentials")
         constant_time_response(start)
-        # It never specifies whether the email exists or if the password is incorrect.
         raise HTTPException(status_code=401, detail="Invalid email or password.")
+
+@router.post("/refresh")
+@limiter.limit("30/minute")
+async def refresh_token(request: Request, data: RefreshTokenRequest):
+    """
+    Recebe o refresh_token, invalida o token atual no Supabase
+    e emite um novo par access_token + refresh_token.
+    Isso previne replay attacks: cada refresh_token só pode ser usado uma vez.
+    """
+    ip = get_ip(request)
+    try:
+        res = supabase.auth.refresh_session(data.refresh_token)
+
+        if not res.session:
+            security_logger.warning(f'REFRESH_FAILURE | ip={ip} | reason=no_session')
+            raise HTTPException(status_code=401, detail="Invalid or expired session. Please log in again.")
+
+        security_logger.info(f'TOKEN_REFRESHED | user_id={res.user.id} | ip={ip}')
+
+        return {
+            "access_token": res.session.access_token,
+            "refresh_token": res.session.refresh_token,
+            "user": res.user
+        }
+    except HTTPException:
+        raise
+    except Exception:
+        security_logger.warning(f'REFRESH_FAILURE | ip={ip} | reason=exception')
+        raise HTTPException(status_code=401, detail="Invalid or expired session. Please log in again.")
 
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
@@ -142,7 +170,6 @@ async def forgot_password(request: Request, data: ResetPasswordRequest):
         pass
     log_password_reset(email=data.email, ip=ip)
     constant_time_response(start)
-    # Always returns success — does not reveal whether the email exists.
     return {"message": "If this email is registered, you will receive a reset link shortly."}
 
 @router.post("/update-password")
