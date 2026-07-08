@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Request
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from app.database import supabase
 from app.logger import (
     log_auth_success, log_auth_failure,
@@ -7,6 +7,8 @@ from app.logger import (
 )
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+import time
+import hmac
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -14,14 +16,23 @@ limiter = Limiter(key_func=get_remote_address)
 def get_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
+# Minimum response time in seconds to prevent timing attacks
+# Ensures that success and failure responses take the same amount of time.
+MIN_RESPONSE_TIME = 0.3
+
+def constant_time_response(start: float):
+    elapsed = time.monotonic() - start
+    if elapsed < MIN_RESPONSE_TIME:
+        time.sleep(MIN_RESPONSE_TIME - elapsed)
+
 class RegisterRequest(BaseModel):
     email: EmailStr
-    password: str
-    full_name: str
+    password: str = Field(..., min_length=6, max_length=128)
+    full_name: str = Field(..., min_length=1, max_length=100)
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(..., min_length=1, max_length=128)
 
 DEFAULT_CATEGORIES = [
     {"name": "Salary",        "type": "income",  "color": "#22c55e", "icon": "💰"},
@@ -46,6 +57,7 @@ def create_default_categories(user_id: str, access_token: str):
 @limiter.limit("5/minute")
 async def register(request: Request, data: RegisterRequest):
     ip = get_ip(request)
+    start = time.monotonic()
     try:
         res = supabase.auth.sign_up({
             "email": data.email,
@@ -55,7 +67,10 @@ async def register(request: Request, data: RegisterRequest):
 
         if not res.user:
             log_register(email=data.email, ip=ip, success=False)
-            raise HTTPException(status_code=400, detail="Registration failed. Please try again.")
+            # Same response time as a successful attempt — anti-timing attack
+            constant_time_response(start)
+            # Same message as success — anti-enumeration
+            return {"message": "Registration complete! Please check your email to confirm your account."}
 
         log_register(email=data.email, ip=ip, success=True)
 
@@ -65,17 +80,21 @@ async def register(request: Request, data: RegisterRequest):
             except Exception:
                 pass
 
+        constant_time_response(start)
         return {"message": "Registration complete! Please check your email to confirm your account."}
     except HTTPException:
         raise
     except Exception:
         log_register(email=data.email, ip=ip, success=False)
-        raise HTTPException(status_code=400, detail="Registration failed. Please check your data and try again.")
+        constant_time_response(start)
+        # Same message regardless of the actual reason for the failure.
+        return {"message": "Registration complete! Please check your email to confirm your account."}
 
 @router.post("/login")
 @limiter.limit("10/minute")
 async def login(request: Request, data: LoginRequest):
     ip = get_ip(request)
+    start = time.monotonic()
     try:
         res = supabase.auth.sign_in_with_password({
             "email": data.email,
@@ -92,6 +111,7 @@ async def login(request: Request, data: LoginRequest):
         except Exception:
             pass
 
+        constant_time_response(start)
         return {
             "access_token": res.session.access_token,
             "user": res.user
@@ -100,24 +120,29 @@ async def login(request: Request, data: LoginRequest):
         raise
     except Exception:
         log_auth_failure(email=data.email, ip=ip, reason="invalid_credentials")
+        constant_time_response(start)
+        # It never specifies whether the email exists or if the password is incorrect.
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
 
 class UpdatePasswordRequest(BaseModel):
-    new_password: str
+    new_password: str = Field(..., min_length=6, max_length=128)
     access_token: str
 
 @router.post("/forgot-password")
 @limiter.limit("3/minute")
 async def forgot_password(request: Request, data: ResetPasswordRequest):
     ip = get_ip(request)
+    start = time.monotonic()
     try:
         supabase.auth.reset_password_email(data.email)
     except Exception:
         pass
     log_password_reset(email=data.email, ip=ip)
+    constant_time_response(start)
+    # Always returns success — does not reveal whether the email exists.
     return {"message": "If this email is registered, you will receive a reset link shortly."}
 
 @router.post("/update-password")
