@@ -1,7 +1,6 @@
 const API_URL = 'https://finwise-1cjo.onrender.com';
 
 // ===== SECURITY: XSS ESCAPE =====
-// Escapa caracteres HTML perigosos antes de inserir qualquer dado no DOM
 function escHtml(str) {
   if (str === null || str === undefined) return '';
   return String(str)
@@ -18,12 +17,21 @@ function getToken() {
   return localStorage.getItem('finwise_token');
 }
 
+function getRefreshToken() {
+  return localStorage.getItem('finwise_refresh_token');
+}
+
 function setToken(token) {
   localStorage.setItem('finwise_token', token);
 }
 
+function setRefreshToken(token) {
+  localStorage.setItem('finwise_refresh_token', token);
+}
+
 function removeToken() {
   localStorage.removeItem('finwise_token');
+  localStorage.removeItem('finwise_refresh_token');
   localStorage.removeItem('finwise_user');
 }
 
@@ -44,6 +52,33 @@ function authHeaders() {
   };
 }
 
+// ===== REFRESH TOKEN =====
+let isRefreshing = false;
+let refreshQueue = [];
+
+async function tryRefreshToken() {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return false;
+
+  try {
+    const res = await fetch(`${API_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    });
+
+    if (!res.ok) return false;
+
+    const data = await res.json();
+    setToken(data.access_token);
+    setRefreshToken(data.refresh_token);
+    setUser(data.user);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // ===== REQUEST BASE =====
 async function request(method, path, body = null) {
   const options = {
@@ -52,8 +87,34 @@ async function request(method, path, body = null) {
   };
   if (body) options.body = JSON.stringify(body);
 
-  const res = await fetch(`${API_URL}${path}`, options);
+  let res = await fetch(`${API_URL}${path}`, options);
 
+  // If you receive a 401, try to automatically renew the token once.
+  if (res.status === 401) {
+    if (isRefreshing) {
+      // Wait for the refresh in progress before trying again.
+      await new Promise(resolve => refreshQueue.push(resolve));
+      res = await fetch(`${API_URL}${path}`, { ...options, headers: authHeaders() });
+    } else {
+      isRefreshing = true;
+      const refreshed = await tryRefreshToken();
+      isRefreshing = false;
+      refreshQueue.forEach(resolve => resolve());
+      refreshQueue = [];
+
+      if (refreshed) {
+        // Retry with the new token
+        res = await fetch(`${API_URL}${path}`, { ...options, headers: authHeaders() });
+      } else {
+        // Refresh failed — logging out
+        removeToken();
+        window.location.href = '/pages/login.html';
+        return;
+      }
+    }
+  }
+
+  // If you still get a 401 error after refreshing, log out.
   if (res.status === 401) {
     removeToken();
     window.location.href = '/pages/login.html';
@@ -76,6 +137,7 @@ const Auth = {
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || 'Login failed');
     setToken(data.access_token);
+    setRefreshToken(data.refresh_token);
     setUser(data.user);
     return data;
   },
