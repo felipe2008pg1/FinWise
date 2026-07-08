@@ -1,10 +1,28 @@
-fastapi
-uvicorn
-python-dotenv
-supabase
-httpx
-python-jose[cryptography]
-pydantic[email]
-anthropic
-reportlab
-slowapi
+# FinWise Backend Dependencies
+# Pinned to minimum secure versions — update periodically with: pip-audit
+
+# Web framework
+fastapi>=0.139.0
+uvicorn>=0.51.0
+
+# Environment
+python-dotenv>=1.2.2
+
+# Database / Auth
+supabase>=2.31.0
+httpx>=0.28.1
+
+# Validation
+pydantic[email]>=2.13.4
+
+# AI
+anthropic>=0.116.0
+
+# PDF generation
+reportlab>=5.0.0
+
+# Rate limiting
+slowapi>=0.1.10
+
+# NOTE: python-jose removed — JWT validation handled by Supabase SDK internally.
+# If direct JWT operations are needed in the future, use PyJWT>=2.13.0 instead.
