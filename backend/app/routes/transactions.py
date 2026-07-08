@@ -4,6 +4,7 @@ from typing import Optional
 from datetime import date
 from app.database import supabase
 from app.dependencies import get_current_user, get_token
+from app.logger import security_logger
 from postgrest.exceptions import APIError
 
 router = APIRouter()
@@ -46,6 +47,7 @@ async def create_transaction(data: TransactionRequest, token: str = Depends(get_
             "date": str(data.date),
             "notes": data.notes
         }).execute()
+        security_logger.info(f'AUDIT | action=CREATE_TRANSACTION | user_id={user_id} | type={data.type} | amount={data.amount}')
         return res.data[0]
     except APIError as e:
         handle_supabase_error(e)
@@ -61,6 +63,7 @@ async def update_transaction(transaction_id: str, data: TransactionRequest, toke
             "date": str(data.date),
             "notes": data.notes
         }).eq("id", transaction_id).eq("user_id", user_id).execute()
+        security_logger.info(f'AUDIT | action=UPDATE_TRANSACTION | user_id={user_id} | transaction_id={transaction_id}')
         return res.data[0]
     except APIError as e:
         handle_supabase_error(e)
@@ -73,6 +76,7 @@ async def delete_transaction(transaction_id: str, token: str = Depends(get_token
             .eq("id", transaction_id)\
             .eq("user_id", user_id)\
             .execute()
+        security_logger.info(f'AUDIT | action=DELETE_TRANSACTION | user_id={user_id} | transaction_id={transaction_id}')
         return {"message": "Transaction deleted"}
     except APIError as e:
         handle_supabase_error(e)
