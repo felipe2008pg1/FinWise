@@ -8,15 +8,18 @@ from slowapi.errors import RateLimitExceeded
 from app.routes import auth, transactions, categories, goals, debts, ai_assistant
 from app.logger import security_logger, log_rate_limit, log_internal_error
 import time
+import os
 
 # ===== RATE LIMITER =====
 limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
+
+# ===== ENVIRONMENT =====
+IS_PRODUCTION = os.environ.get("ENVIRONMENT", "production").lower() == "production"
 
 # ===== SECURITY HEADERS MIDDLEWARE =====
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
-
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-Content-Type-Options"] = "nosniff"
@@ -26,13 +29,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "payment=(), usb=(), magnetometer=(), gyroscope=()"
         )
         response.headers["Content-Security-Policy"] = "default-src 'none'"
-
         for h in ["Server", "X-Powered-By"]:
             try:
                 del response.headers[h]
             except KeyError:
                 pass
-
         return response
 
 # ===== REQUEST LOGGING MIDDLEWARE =====
@@ -48,7 +49,6 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         duration_ms = round((time.time() - start) * 1000)
         status = response.status_code
 
-        # Logs only security-relevant events
         if status == 429:
             log_rate_limit(ip=ip, path=path)
         elif status == 401:
@@ -62,7 +62,6 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         elif status >= 500:
             log_internal_error(path=path, error_type=f'HTTP_{status}', ip=ip)
         elif path.startswith('/auth/'):
-            # Logs all auth calls for auditing purposes.
             security_logger.info(
                 f'AUTH_REQUEST | method={method} | path={path} | status={status} | ip={ip} | duration={duration_ms}ms'
             )
@@ -70,10 +69,14 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         return response
 
 # ===== APP =====
+# In production, /docs and /redoc are disabled — the API structure is not exposed.
 app = FastAPI(
     title="FinWise API",
     description="FinWise financial education platform API",
     version="1.0.0",
+    docs_url=None if IS_PRODUCTION else "/docs",
+    redoc_url=None if IS_PRODUCTION else "/redoc",
+    openapi_url=None if IS_PRODUCTION else "/openapi.json",
 )
 
 app.add_middleware(RequestLoggingMiddleware)
