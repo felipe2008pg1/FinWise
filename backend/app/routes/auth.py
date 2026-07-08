@@ -6,6 +6,7 @@ from app.logger import (
     log_register, log_password_reset,
     security_logger
 )
+from app.monitor import record_login_failure, clear_failures
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 import time
@@ -65,20 +66,16 @@ async def register(request: Request, data: RegisterRequest):
             "password": data.password,
             "options": {"data": {"full_name": data.full_name}}
         })
-
         if not res.user:
             log_register(email=data.email, ip=ip, success=False)
             constant_time_response(start)
             return {"message": "Registration complete! Please check your email to confirm your account."}
-
         log_register(email=data.email, ip=ip, success=True)
-
         if res.session:
             try:
                 create_default_categories(res.user.id, res.session.access_token)
             except Exception:
                 pass
-
         constant_time_response(start)
         return {"message": "Registration complete! Please check your email to confirm your account."}
     except HTTPException:
@@ -98,9 +95,9 @@ async def login(request: Request, data: LoginRequest):
             "email": data.email,
             "password": data.password
         })
-
         log_auth_success(user_id=res.user.id, email=data.email, ip=ip)
-
+        # Successful login — clears the failure counter for this IP
+        clear_failures(ip)
         try:
             existing = supabase.postgrest.auth(res.session.access_token)\
                 .from_("categories").select("id").eq("user_id", res.user.id).limit(1).execute()
@@ -108,11 +105,9 @@ async def login(request: Request, data: LoginRequest):
                 create_default_categories(res.user.id, res.session.access_token)
         except Exception:
             pass
-
         constant_time_response(start)
         return {
             "access_token": res.session.access_token,
-            # Returns the refresh token so the frontend can renew the session.
             "refresh_token": res.session.refresh_token,
             "user": res.user
         }
@@ -120,27 +115,21 @@ async def login(request: Request, data: LoginRequest):
         raise
     except Exception:
         log_auth_failure(email=data.email, ip=ip, reason="invalid_credentials")
+        # Logs a failure in the brute-force detection monitor.
+        record_login_failure(ip=ip, email=data.email)
         constant_time_response(start)
         raise HTTPException(status_code=401, detail="Invalid email or password.")
 
 @router.post("/refresh")
 @limiter.limit("30/minute")
 async def refresh_token(request: Request, data: RefreshTokenRequest):
-    """
-    Recebe o refresh_token, invalida o token atual no Supabase
-    e emite um novo par access_token + refresh_token.
-    Isso previne replay attacks: cada refresh_token só pode ser usado uma vez.
-    """
     ip = get_ip(request)
     try:
         res = supabase.auth.refresh_session(data.refresh_token)
-
         if not res.session:
             security_logger.warning(f'REFRESH_FAILURE | ip={ip} | reason=no_session')
             raise HTTPException(status_code=401, detail="Invalid or expired session. Please log in again.")
-
         security_logger.info(f'TOKEN_REFRESHED | user_id={res.user.id} | ip={ip}')
-
         return {
             "access_token": res.session.access_token,
             "refresh_token": res.session.refresh_token,
