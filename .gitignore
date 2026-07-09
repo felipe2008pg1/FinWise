@@ -1,14 +1,56 @@
+# Python
 __pycache__/
 *.py[cod]
 *.pyo
+*.pyc
+
+# Virtual environments
 .venv/
 venv/
 env/
+ENV/
+
+# Environment variables — NEVER commit secrets
 .env
+.env.*
 *.env
+!.env.example
+
+# IDEs
 .vscode/
 .idea/
 *.DS_Store
+
+# Logs
 *.log
+logs/
+
+# Build artifacts
 dist/
 build/
+*.egg-info/
+.eggs/
+
+# Test and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Node (if frontend tooling is ever added)
+node_modules/
+npm-debug.log*
+
+# Render / deployment artifacts
+.render/
+
+# Security — never commit these
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials/
