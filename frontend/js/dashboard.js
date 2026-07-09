@@ -1,30 +1,30 @@
-// Verifica autenticação
+// Check authentication
 if (!Auth.isLoggedIn()) {
   window.location.href = '/pages/login.html';
 }
 
-// Data atual
+// Current date
 document.getElementById('currentDate').textContent = new Date().toLocaleDateString('pt-BR', {
   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
 });
 
-// Nome do usuário
+// Username
 const user = getUser();
 if (user) {
   document.getElementById('userName').textContent = user.user_metadata?.full_name || user.email;
 }
 
-// Formata moeda
+// Format currency
 function formatMoney(value) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 }
 
-// Formata data
+// Format date
 function formatDate(dateStr) {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR');
 }
 
-// ===== CARREGA DASHBOARD =====
+// ===== LOAD DASHBOARD =====
 async function loadDashboard() {
   try {
     const [transactions, goals] = await Promise.all([
@@ -32,48 +32,46 @@ async function loadDashboard() {
       Goals.getAll()
     ]);
 
-    // Resumo
-    const income = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+    // Summary
+    const income  = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
     const expense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-
-    document.getElementById('totalIncome').textContent = formatMoney(income);
+    document.getElementById('totalIncome').textContent  = formatMoney(income);
     document.getElementById('totalExpense').textContent = formatMoney(expense);
     document.getElementById('totalBalance').textContent = formatMoney(income - expense);
 
-    // Transações recentes
+    // Recent transactions — all data escaped before inserting into the DOM
     const recent = transactions.slice(0, 8);
     const container = document.getElementById('recentTransactions');
-
     if (recent.length === 0) {
       container.innerHTML = '<p class="text-muted text-center">Nenhuma transação ainda</p>';
     } else {
       container.innerHTML = recent.map(t => `
         <div class="transaction-item">
           <div class="transaction-info">
-            <div class="transaction-icon">${t.categories?.icon || (t.type === 'income' ? '📈' : '📉')}</div>
+            <div class="transaction-icon">${escHtml(t.categories?.icon) || (t.type === 'income' ? '📈' : '📉')}</div>
             <div>
-              <p class="transaction-title">${t.title}</p>
-              <p class="transaction-date">${formatDate(t.date)}</p>
+              <p class="transaction-title">${escHtml(t.title)}</p>
+              <p class="transaction-date">${escHtml(formatDate(t.date))}</p>
             </div>
           </div>
           <span class="transaction-amount ${t.type === 'income' ? 'text-success' : 'text-danger'}">
-            ${t.type === 'income' ? '+' : '-'} ${formatMoney(t.amount)}
+            ${t.type === 'income' ? '+' : '-'} ${escHtml(formatMoney(t.amount))}
           </span>
         </div>
       `).join('');
     }
 
-    // Gráfico por categoria
+    // Expense chart by category
     const expensesByCategory = {};
     transactions.filter(t => t.type === 'expense').forEach(t => {
-      const cat = t.categories?.name || 'Outros';
+      const cat = t.categories?.name || 'Others';
       expensesByCategory[cat] = (expensesByCategory[cat] || 0) + t.amount;
     });
-
     const ctx = document.getElementById('categoryChart').getContext('2d');
     new Chart(ctx, {
       type: 'doughnut',
       data: {
+        // Category names are not inserted via innerHTML — Chart.js handles rendering safely
         labels: Object.keys(expensesByCategory),
         datasets: [{
           data: Object.values(expensesByCategory),
@@ -88,10 +86,9 @@ async function loadDashboard() {
       }
     });
 
-    // Metas
+    // Active goals — all data escaped before inserting into the DOM
     const goalsContainer = document.getElementById('goalsList');
     const activeGoals = goals.filter(g => g.status === 'active');
-
     if (activeGoals.length === 0) {
       goalsContainer.innerHTML = '<p class="text-muted text-center">Nenhuma meta cadastrada</p>';
     } else {
@@ -100,19 +97,19 @@ async function loadDashboard() {
         return `
           <div class="goal-item">
             <div class="goal-header">
-              <span class="goal-title">${g.title}</span>
-              <span class="goal-values">${formatMoney(g.current_amount)} / ${formatMoney(g.target_amount)} (${pct}%)</span>
+              <span class="goal-title">${escHtml(g.title)}</span>
+              <span class="goal-values">${escHtml(formatMoney(g.current_amount))} / ${escHtml(formatMoney(g.target_amount))} (${escHtml(pct)}%)</span>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill" style="width: ${pct}%"></div>
+              <div class="progress-fill" style="width: ${escHtml(pct)}%"></div>
             </div>
           </div>
         `;
       }).join('');
     }
-
   } catch (err) {
-    console.error('Erro ao carregar dashboard:', err);
+    // Error logged to console only — never exposed to the user
+    console.error('Dashboard load error:', err);
   }
 }
 
