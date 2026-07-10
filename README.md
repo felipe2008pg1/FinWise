@@ -41,54 +41,6 @@
 
 ---
 
-## 📁 Project Estruture
-
-```
-FinWise/
-├── backend/
-│   ├── app/
-│   │   ├── main.py           # Application entry
-│   │   ├── config.py         # Environment variables
-│   │   ├── database.py       # Conection Supabase
-│   │   ├── dependencies.py   # Middleware for autentication
-│   │   └── routes/
-│   │       ├── auth.py
-│   │       ├── transactions.py
-│   │       ├── categories.py
-│   │       ├── goals.py
-│   │       ├── debts.py
-│   │       └── ai_assistant.py
-│   └── requirements.txt
-│
-└── frontend/
-    ├── index.html            # Landing page
-    ├── pages/
-    │   ├── login.html
-    │   ├── register.html
-    │   ├── dashboard.html
-    │   ├── transactions.html
-    │   ├── categories.html
-    │   ├── goals.html
-    │   ├── debts.html
-    │   ├── ai-chat.html
-    │   ├── forgot-password.html
-    │   └── reset-password.html
-    ├── css/
-    │   ├── global.css
-    │   └── dashboard.css
-    └── js/
-        ├── api.js
-        ├── auth.js
-        ├── dashboard.js
-        ├── transactions.js
-        ├── categories.js
-        ├── goals.js
-        ├── debts.js
-        └── ai-chat.js
-```
-
----
-
 ## ⚙️ How to run locally
 
 ### Prerequisites
