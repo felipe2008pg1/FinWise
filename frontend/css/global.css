@@ -203,3 +203,12 @@ a:hover {
 .mt-2 { margin-top: 16px; }
 .mt-3 { margin-top: 24px; }
 .hidden { display: none; }
+
+/* ===== RESPONSIVE (MOBILE) ===== */
+@media (max-width: 768px) {
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 16px; /* evita zoom automático do iOS ao focar */
+  }
+}
