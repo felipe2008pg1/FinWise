@@ -1,4 +1,3 @@
-@@ -1,133 +1,250 @@
 if (!Auth.isLoggedIn()) window.location.href = '/pages/login.html';
 
 const user = getUser();
@@ -68,12 +67,15 @@ function renderTransactions() {
           <p class="transaction-title">${escHtml(t.title)}</p>
           <p class="transaction-date">${escHtml(formatDate(t.date))} ${t.categories ? '· ' + escHtml(t.categories.name) : ''}</p>
         </div>
-              <div style="display:flex;align-items:center;gap:12px">
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
         <span class="transaction-amount ${t.type === 'income' ? 'text-success' : 'text-danger'}">
           ${t.type === 'income' ? '+' : '-'} ${escHtml(formatMoney(t.amount))}
         </span>
         <button class="delete-btn" onclick="deleteTransaction('${escHtml(t.id)}')">🗑</button>
-          `).join('');
+      </div>
+    </div>
+  `).join('');
 }
 
 async function saveTransaction() {
