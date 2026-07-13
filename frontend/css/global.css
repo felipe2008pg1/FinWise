@@ -209,6 +209,6 @@ a:hover {
   .form-group input,
   .form-group select,
   .form-group textarea {
-    font-size: 16px; /* evita zoom automático do iOS ao focar */
+    font-size: 16px; /* prevents iOS auto-zoom when focusing */
   }
 }
