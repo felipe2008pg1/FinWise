@@ -141,6 +141,28 @@
 
     .empty-state { text-align: center; padding: 48px; color: var(--text-muted); }
     .empty-state p { font-size: 32px; margin-bottom: 8px; }
+
+    /* ===== RESPONSIVE (MOBILE) ===== */
+    @media (max-width: 768px) {
+      .debts-header {
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .debts-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .debt-info {
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .modal {
+        padding: 20px;
+        max-width: calc(100% - 32px);
+      }
+    }
   </style>
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
