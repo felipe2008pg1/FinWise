@@ -1,250 +1,131 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Transações — FinWise</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/global.css">
-  <link rel="stylesheet" href="../css/dashboard.css">
-  <style>
-    .transactions-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
+@@ -1,133 +1,250 @@
+if (!Auth.isLoggedIn()) window.location.href = '/pages/login.html';
 
-    .filters {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
+const user = getUser();
+if (user) document.getElementById('userName').textContent = user.user_metadata?.full_name || user.email;
 
-    .filters select {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 12px;
-      color: var(--text);
-      font-size: 14px;
-      outline: none;
-    }
+let transactions = [];
+let categories = [];
+let selectedType = 'income';
 
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-    }
+document.getElementById('txDate').valueAsDate = new Date();
 
-    .modal-overlay.active {
-      display: flex;
-    }
+function formatMoney(value) {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+}
 
-    .modal {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 32px;
-      width: 100%;
-      max-width: 480px;
-    }
+function formatDate(dateStr) {
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR');
+}
 
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
+function setType(type) {
+  selectedType = type;
+  document.getElementById('btnIncome').className = 'type-btn' + (type === 'income' ? ' active-income' : '');
+  document.getElementById('btnExpense').className = 'type-btn' + (type === 'expense' ? ' active-expense' : '');
+  populateCategorySelect();
+}
 
-    .modal-header h2 {
-      font-size: 18px;
-      font-weight: 600;
-    }
+function openModal() {
+  document.getElementById('modalOverlay').classList.add('active');
+}
 
-    .close-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 20px;
-      cursor: pointer;
-    }
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+  document.getElementById('formError').classList.add('hidden');
+}
 
-    .type-toggle {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
+function populateCategorySelect() {
+  const select = document.getElementById('txCategory');
+  const filtered = categories.filter(c => c.type === selectedType);
+  select.innerHTML = '<option value="">Sem categoria</option>' +
+    filtered.map(c => `<option value="${escHtml(c.id)}">${escHtml(c.icon)} ${escHtml(c.name)}</option>`).join('');
+}
 
-    .type-btn {
-      flex: 1;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text-muted);
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
+function renderTransactions() {
+  const typeFilter = document.getElementById('filterType').value;
+  const catFilter = document.getElementById('filterCategory').value;
 
-    .type-btn.active-income {
-      background: rgba(34,197,94,0.15);
-      border-color: var(--success);
-      color: var(--success);
-    }
+  let filtered = transactions;
+  if (typeFilter !== 'all') filtered = filtered.filter(t => t.type === typeFilter);
+  if (catFilter !== 'all') filtered = filtered.filter(t => t.category_id === catFilter);
 
-    .type-btn.active-expense {
-      background: rgba(239,68,68,0.15);
-      border-color: var(--danger);
-      color: var(--danger);
-    }
+  const container = document.getElementById('transactionsList');
 
-    .delete-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 16px;
-      padding: 4px;
-      transition: color 0.2s;
-    }
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <p>💸</p>
+        <span>Nenhuma transação encontrada</span>
+      </div>`;
+    return;
+  }
 
-    .delete-btn:hover { color: var(--danger); }
+  container.innerHTML = filtered.map(t => `
+    <div class="transaction-item">
+      <div class="transaction-info">
+        <div class="transaction-icon">${escHtml(t.categories?.icon) || (t.type === 'income' ? '📈' : '📉')}</div>
+        <div>
+          <p class="transaction-title">${escHtml(t.title)}</p>
+          <p class="transaction-date">${escHtml(formatDate(t.date))} ${t.categories ? '· ' + escHtml(t.categories.name) : ''}</p>
+        </div>
+              <div style="display:flex;align-items:center;gap:12px">
+        <span class="transaction-amount ${t.type === 'income' ? 'text-success' : 'text-danger'}">
+          ${t.type === 'income' ? '+' : '-'} ${escHtml(formatMoney(t.amount))}
+        </span>
+        <button class="delete-btn" onclick="deleteTransaction('${escHtml(t.id)}')">🗑</button>
+          `).join('');
+}
 
-    .empty-state {
-      text-align: center;
-      padding: 48px;
-      color: var(--text-muted);
-    }
+async function saveTransaction() {
+  const btn = document.getElementById('saveBtn');
+  const error = document.getElementById('formError');
+  const title = document.getElementById('txTitle').value.trim();
+  const amount = parseFloat(document.getElementById('txAmount').value);
+  const date = document.getElementById('txDate').value;
+  const category_id = document.getElementById('txCategory').value || null;
+  const notes = document.getElementById('txNotes').value.trim() || null;
 
-    .empty-state p { font-size: 32px; margin-bottom: 8px; }
+  if (!title || !amount || !date) {
+    error.textContent = 'Preencha título, valor e data.';
+    error.classList.remove('hidden');
+    return;
+  }
 
-    /* ===== RESPONSIVE (MOBILE) ===== */
-    @media (max-width: 768px) {
-      .transactions-header {
-        flex-wrap: wrap;
-        gap: 12px;
-      }
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div>';
+  error.classList.add('hidden');
 
-      .filters {
-        flex-direction: column;
-      }
+  try {
+    await Transactions.create({ title, amount, type: selectedType, date, category_id, notes });
+    closeModal();
+    await loadData();
+  } catch (err) {
+    error.textContent = err.message;
+    error.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Salvar';
+  }
+}
 
-      .filters select {
-        width: 100%;
-      }
+async function deleteTransaction(id) {
+  if (!confirm('Deletar esta transação?')) return;
+  await Transactions.delete(id);
+  await loadData();
+}
 
-      .modal {
-        padding: 20px;
-        max-width: calc(100% - 32px);
-        max-height: 90vh;
-        overflow-y: auto;
-      }
+async function loadData() {
+  [transactions, categories] = await Promise.all([
+    Transactions.getAll(),
+    Categories.getAll()
+  ]);
 
-      .transaction-item {
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-    }
-  </style>
-  <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-</head>
-<body>
-  <aside class="sidebar">
-    <div class="sidebar-logo">💰 FinWise</div>
-    <nav class="sidebar-nav">
-      <a href="dashboard.html" class="nav-item">📊 Dashboard</a>
-      <a href="transactions.html" class="nav-item active">💸 Transações</a>
-      <a href="categories.html" class="nav-item">🏷️ Categorias</a>
-      <a href="goals.html" class="nav-item">🎯 Metas</a>
-      <a href="debts.html" class="nav-item">💳 Dívidas</a>
-      <a href="ai-chat.html" class="nav-item">🤖 FinBot IA</a>
-    </nav>
-    <div class="sidebar-footer">
-      <span id="userName" class="text-muted"></span>
-      <button onclick="Auth.logout()" class="btn btn-ghost btn-sm">Sair</button>
-    </div>
-  </aside>
+  const filterCat = document.getElementById('filterCategory');
+  filterCat.innerHTML = '<option value="all">Todas categorias</option>' +
+    categories.map(c => `<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
 
-  <main class="main">
-    <div class="transactions-header">
-      <h1>Transações</h1>
-      <button class="btn btn-primary" onclick="openModal()">+ Nova transação</button>
-    </div>
+  populateCategorySelect();
+  renderTransactions();
+}
 
-    <div class="filters">
-      <select id="filterType" onchange="renderTransactions()">
-        <option value="all">Todos</option>
-        <option value="income">Receitas</option>
-        <option value="expense">Despesas</option>
-      </select>
-      <select id="filterCategory" onchange="renderTransactions()">
-        <option value="all">Todas categorias</option>
-      </select>
-    </div>
-
-    <div class="card">
-      <div id="transactionsList">
-        <p class="text-muted text-center">Carregando...</p>
-      </div>
-    </div>
-  </main>
-
-  <!-- MODAL -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>Nova transação</h2>
-        <button class="close-btn" onclick="closeModal()">✕</button>
-      </div>
-
-      <div class="type-toggle">
-        <button class="type-btn active-income" id="btnIncome" onclick="setType('income')">📈 Receita</button>
-        <button class="type-btn" id="btnExpense" onclick="setType('expense')">📉 Despesa</button>
-      </div>
-
-      <div id="formError" class="alert alert-error hidden"></div>
-
-      <div class="form-group">
-        <label>Título</label>
-        <input type="text" id="txTitle" placeholder="Ex: Salário, Aluguel...">
-      </div>
-      <div class="form-group">
-        <label>Valor (R$)</label>
-        <input type="number" id="txAmount" placeholder="0,00" step="0.01" min="0">
-      </div>
-      <div class="form-group">
-        <label>Data</label>
-        <input type="date" id="txDate">
-      </div>
-      <div class="form-group">
-        <label>Categoria</label>
-        <select id="txCategory">
-          <option value="">Sem categoria</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Observações</label>
-        <input type="text" id="txNotes" placeholder="Opcional">
-      </div>
-
-      <button class="btn btn-primary btn-full" id="saveBtn" onclick="saveTransaction()">
-        Salvar
-      </button>
-    </div>
-  </div>
-
-  <script src="../js/api.js"></script>
-  <script src="../js/transactions.js"></script>
-</body>
-</html>
+loadData();
