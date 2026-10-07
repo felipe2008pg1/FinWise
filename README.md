@@ -15,7 +15,7 @@
 - **🏷️ Categories** — Create, edit, and organize custom income/expense categories.
 - **🎯 Financial Goals** — Set goals and track your progress.
 - **💳 Debt Management** — Register your debts and simulate repayment times.
-- **🤖 FinBot IA** — Finance Assistent powered by Claude (Anthropic).
+- **🤖 FinBot AI** — Finance Assistent powered by Claude (Anthropic).
 - **🔒 Secure Authentication** — JWT + Row Level Security in database.
 - **📧 Password Reset** — Complete flow via email.
 
